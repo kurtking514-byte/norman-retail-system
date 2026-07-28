@@ -1,0 +1,38 @@
+# Environment files
+backend/.env
+frontend/.env
+
+# Database files
+*.db
+*.db-shm
+*.db-wal
+
+# Log files
+*.log
+
+# Python
+node_modules/
+__pycache__/
+*.pyc
+
+# Testing
+.pytest_cache/
+
+# Working notes
+dev-notes/
+*deepseek-ide-prompt*.md
+phase-*-task.md
+phase-*-task-brief.md
+task-*.md
+quick-task*.md
+
+# One-off scripts
+fix_*.py
+
+# Credentials
+login.json
+.continue/
+
+# Stray txt debris (exclude requirements.txt)
+*.txt
+!requirements.txt
