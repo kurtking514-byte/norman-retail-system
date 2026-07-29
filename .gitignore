@@ -36,3 +36,4 @@ login.json
 # Stray txt debris (exclude requirements.txt)
 *.txt
 !requirements.txt
+.aider*
