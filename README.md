@@ -126,10 +126,34 @@ python -m pytest backend/tests/ -q --tb=line
 - `-q` keeps output quiet (project convention — do not use `-v`).
 - `--tb=line` shows one line per failure for fast scanning.
 
-## Running the System (pm2)
+## Deployment (Render)
 
-A single pm2 command starts the backend, frontend, and ngrok tunnel together,
-auto-restarting any process that crashes. From the **repo root**:
+**Live URL** — [https://norman-retail-system.onrender.com](https://norman-retail-system.onrender.com)
+
+**Auto-deploy** — Every push to the `main` branch on GitHub triggers a new Render deploy automatically. No manual deploy step is needed for routine changes.
+
+**Production environment variables** — On Render, these are stored directly in Render's dashboard under the **Environment** tab for the web service. The list of required variables is kept in sync with `backend/.env.example` whenever a new variable is added to the app.
+
+**Logs** — Production logs are available in the Render dashboard under the **Logs** tab for the service.
+
+**Known current limitations**
+
+- **Free-tier spin-down**: The service is currently on Render's free instance tier, which **spins down after ~15 minutes of inactivity**. On the first request after a spin-down, the instance cold-starts, causing delayed responses (up to ~50 seconds). This will be resolved once the service is upgraded to the paid **Starter** tier.
+- **Database (SQLite, no persistent disk yet)**: The app currently uses SQLite with **no persistent disk** attached on Render, meaning **the database is reset on every redeploy**. Do NOT store real customer data here until a persistent disk is added and `DATABASE_URL` is updated to point to a path on that disk. This is an open item — not yet resolved.
+
+**Messenger webhook (production)** — Meta's Messenger webhook is already configured in Meta's App Dashboard as:
+```
+https://norman-retail-system.onrender.com/api/v1/webhook
+```
+This is already set up and does not need to be reconfigured.
+
+---
+
+## Running the System (pm2 — local development only)
+
+**The pm2 setup described in this section is for local development only.** Production runs on Render (see the Deployment section above).
+
+A single pm2 command starts the backend, frontend, and ngrok tunnel together, auto-restarting any process that crashes. From the **repo root**:
 
 ```bash
 # Start everything
