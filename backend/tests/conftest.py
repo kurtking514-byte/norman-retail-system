@@ -32,7 +32,7 @@ os.environ.setdefault("DATABASE_URL", "sqlite+aiosqlite:///file::memory:?cache=s
 
 
 @pytest.fixture(scope="session", autouse=True)
-def setup_db():
+async def setup_db():
     """Create all tables once before the test session, using the current models.
 
     Because we use an in-memory SQLite database, there is no stale file on disk.
@@ -40,11 +40,11 @@ def setup_db():
     Schema drift is structurally impossible.
     """
     from app.core.database import init_db, engine
-    asyncio.run(init_db())
+    await init_db()
     yield
     # Dispose of the engine so connections are closed cleanly.
     try:
-        asyncio.run(engine.dispose())
+        await engine.dispose()
     except Exception:
         pass
 

@@ -22,7 +22,7 @@ def upgrade() -> None:
     """Upgrade schema."""
     op.add_column('customers', sa.Column('thread_state_updated_at', sa.DateTime(), nullable=True))
     op.add_column('customers', sa.Column('thread_state_pinned', sa.Boolean(), nullable=True))
-    op.execute("UPDATE customers SET thread_state_pinned = 0 WHERE thread_state_pinned IS NULL")
+    op.execute("UPDATE customers SET thread_state_pinned = FALSE WHERE thread_state_pinned IS NULL")
     # Set thread_state_updated_at to created_at for existing rows as a best-effort default
     op.execute("UPDATE customers SET thread_state_updated_at = created_at WHERE thread_state_updated_at IS NULL")
 
