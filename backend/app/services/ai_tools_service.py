@@ -152,7 +152,7 @@ async def create_reservation_via_chat(
         }
 
     # ---- Step 3: 24-hour rolling guardrail ----------------------------------
-    since = datetime.now(timezone.utc) - timedelta(hours=24)
+    since = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(hours=24)
     recent_result = await db.execute(
         select(func.count(Reservation.id)).where(
             Reservation.customer_id == customer.id,

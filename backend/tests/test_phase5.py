@@ -34,6 +34,7 @@ import asyncio  # noqa: E402
 
 import httpx  # noqa: E402
 import pytest  # noqa: E402
+import pytest_asyncio  # noqa: E402
 from httpx import ASGITransport  # noqa: E402
 from sqlalchemy import select  # noqa: E402
 

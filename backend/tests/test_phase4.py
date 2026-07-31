@@ -22,6 +22,7 @@ os.environ.setdefault("JWT_SECRET_KEY", "test-secret-key-for-phase4-testing")
 os.environ.setdefault("ADMIN_USERNAME", "admin")
 
 import bcrypt  # noqa: E402
+import pytest_asyncio
 
 HASHED_PW = bcrypt.hashpw(b"changeme123", bcrypt.gensalt(12)).decode()
 os.environ.setdefault("ADMIN_PASSWORD_HASH", HASHED_PW)
@@ -105,10 +106,10 @@ async def _seed_default_data():
 # ---------------------------------------------------------------------------
 
 
-@pytest.fixture(scope="session", autouse=True)
-def seed_phase4_data():
+@pytest_asyncio.fixture(scope="session", autouse=True)
+async def seed_phase4_data():
     """Seed default data needed by Phase 4 tests."""
-    asyncio.run(_seed_default_data())
+    await _seed_default_data()
     yield
 
 

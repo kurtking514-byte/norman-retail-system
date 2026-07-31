@@ -151,7 +151,7 @@ async def create_repair(
         phone_number=body.phone_number,
     )
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
     repair = RepairRequest(
         customer_id=customer.id,
         device_model=body.device_model,
@@ -201,7 +201,7 @@ async def update_repair(
     if body.notes is not None:
         repair.notes = body.notes
 
-    repair.updated_at = datetime.now(timezone.utc)
+    repair.updated_at = datetime.now(timezone.utc).replace(tzinfo=None)
     await db.commit()
     await db.refresh(repair)
     return RepairRequestResponse.model_validate(repair)

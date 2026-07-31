@@ -119,7 +119,7 @@ async def expire_stale_reservations(db: AsyncSession) -> int:
 
     Returns the number of reservations that were expired.
     """
-    now = datetime.now(timezone.utc)
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
     result = await db.execute(
         select(Reservation).where(
             Reservation.status == "Pending",
@@ -240,7 +240,7 @@ async def create_reservation_for_customer(
     This is the shared core used by both the REST endpoint and the
     AI tool-calling service.
     """
-    now = datetime.now(timezone.utc)
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
     reservation = Reservation(
         customer_id=customer.id,
         product_id=product_id,
