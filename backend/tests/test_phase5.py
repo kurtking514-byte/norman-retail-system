@@ -160,10 +160,10 @@ async def _cleanup_test_data():
 # ---------------------------------------------------------------------------
 
 
-@pytest.fixture(scope="session", autouse=True)
-def seed_phase5_data():
+@pytest_asyncio.fixture(scope="session", autouse=True)
+async def seed_phase5_data():
     """Seed default data needed by Phase 5 tests."""
-    asyncio.run(_seed_test_data())
+    await _seed_test_data()
     yield
 
 

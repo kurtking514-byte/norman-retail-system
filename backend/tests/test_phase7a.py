@@ -33,6 +33,7 @@ from datetime import datetime, timedelta, timezone  # noqa: E402
 
 import httpx  # noqa: E402
 import pytest  # noqa: E402
+import pytest_asyncio  # noqa: E402
 from sqlalchemy import select  # noqa: E402
 
 from app.core.database import async_session_factory  # noqa: E402
@@ -56,10 +57,10 @@ SAMPLE_INVENTORY_SERIAL = "SN-PHASE7A-001"
 # ---------------------------------------------------------------------------
 
 
-@pytest.fixture(scope="session", autouse=True)
-def seed_phase7a_data():
+@pytest_asyncio.fixture(scope="session", autouse=True)
+async def seed_phase7a_data():
     """Seed default data needed by Phase 7a tests."""
-    asyncio.run(_seed_test_data())
+    await _seed_test_data()
     yield
 
 

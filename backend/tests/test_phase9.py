@@ -35,6 +35,7 @@ from datetime import datetime, timedelta, timezone  # noqa: E402
 
 import httpx  # noqa: E402
 import pytest  # noqa: E402
+import pytest_asyncio  # noqa: E402
 from httpx import ASGITransport  # noqa: E402
 from sqlalchemy import select  # noqa: E402
 
@@ -204,10 +205,10 @@ async def _cleanup_test_data():
 # ---------------------------------------------------------------------------
 
 
-@pytest.fixture(scope="session", autouse=True)
-def seed_phase9_data():
+@pytest_asyncio.fixture(scope="session", autouse=True)
+async def seed_phase9_data():
     """Seed default data needed by Phase 9 tests."""
-    asyncio.run(_seed_test_data())
+    await _seed_test_data()
     yield
 
 
