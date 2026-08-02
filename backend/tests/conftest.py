@@ -11,6 +11,7 @@ import asyncio
 from pathlib import Path
 
 import pytest
+import pytest_asyncio
 
 # Ensure the backend directory is on sys.path so "from app import ..." works.
 BACKEND_DIR = Path(__file__).resolve().parent.parent
@@ -31,7 +32,7 @@ os.environ.setdefault("DATABASE_URL", "sqlite+aiosqlite:///file::memory:?cache=s
 # ---------------------------------------------------------------------------
 
 
-@pytest.fixture(scope="session", autouse=True)
+@pytest_asyncio.fixture(scope="session", autouse=True)
 async def setup_db():
     """Create all tables once before the test session, using the current models.
 
@@ -52,4 +53,5 @@ async def setup_db():
 # Register custom markers so pytest does not warn about them.
 def pytest_configure(config):
     config.addinivalue_line("markers", "asyncio: mark test as async")
+
 

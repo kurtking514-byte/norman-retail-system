@@ -440,7 +440,7 @@ async def test_expired_reservation_auto_cancels(client, auth_token, db_session):
     await db_session.commit()
     await db_session.refresh(cust)
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
     expired_reservation = Reservation(
         customer_id=cust.id,
         product_id=TEST_PRODUCT_ID,

@@ -349,7 +349,7 @@ async def test_check_repair_status_found(db_session):
     assert customer is not None, "Test customer should exist"
 
     # Create a repair request
-    now = datetime.now(timezone.utc)
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
     repair = RepairRequest(
         customer_id=customer.id,
         device_model="iPhone 15 Pro Max",

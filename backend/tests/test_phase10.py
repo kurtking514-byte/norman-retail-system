@@ -321,8 +321,8 @@ async def _seed_reservation(
         res = Reservation(
             customer_id=customer_id,
             product_id=PRODUCT_ID,
-            reservation_date=datetime.now(timezone.utc),
-            expiry_date=datetime.now(timezone.utc) + timedelta(hours=48),
+            reservation_date=datetime.now(timezone.utc).replace(tzinfo=None),
+            expiry_date=datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(hours=48),
             status=status,
         )
         session.add(res)
