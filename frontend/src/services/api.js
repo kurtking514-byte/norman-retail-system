@@ -1,10 +1,9 @@
 import axios from 'axios';
 
+// No default Content-Type: axios sends JSON for plain objects on its own and
+// lets the browser set the multipart boundary for FormData (file uploads).
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
 });
 
 // Request interceptor: attach JWT from localStorage

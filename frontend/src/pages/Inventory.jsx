@@ -1,6 +1,7 @@
             import { useState, useEffect, useCallback, useRef } from 'react';
 import api from '../services/api';
 import StatusBadge from '../components/common/StatusBadge';
+import ImportProductsModal from '../components/inventory/ImportProductsModal';
 
 /**
  * Inventory page — product table with search, add-product modal, and delete.
@@ -172,6 +173,7 @@ export default function Inventory() {
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
+  const [showImport, setShowImport] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
   const debounceRef = useRef(null);
 
@@ -244,12 +246,20 @@ export default function Inventory() {
             {loading ? 'Loading...' : `${products.length} products \u00B7 ${totalStockCount} units in stock`}
           </p>
         </div>
-        <button
-          onClick={() => setShowModal(true)}
-          className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-colors shadow-sm"
-        >
-          + Add Product
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowImport(true)}
+            className="px-4 py-2.5 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 text-sm font-semibold rounded-lg transition-colors shadow-sm"
+          >
+            Import spreadsheet
+          </button>
+          <button
+            onClick={() => setShowModal(true)}
+            className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-colors shadow-sm"
+          >
+            + Add Product
+          </button>
+        </div>
       </div>
 
       {/* Error banner */}
@@ -350,6 +360,7 @@ export default function Inventory() {
 
       {/* Add Product Modal */}
       <AddProductModal open={showModal} onClose={() => setShowModal(false)} onCreated={fetchData} />
+      <ImportProductsModal open={showImport} onClose={() => setShowImport(false)} onImported={fetchData} />
     </div>
   );
 }

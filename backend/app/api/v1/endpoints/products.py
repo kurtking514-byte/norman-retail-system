@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, File, HTTPException, Query, Response, UploadFile, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.core.security import get_current_admin
 from app.models.product import Product
+from app.services import product_import_service as importer
 from app.schemas.product import (
     ProductAdminResponse,
     ProductCreate,
@@ -29,7 +30,7 @@ def _build_error(code: str, message: str) -> dict:
 @router.get("", response_model=list[ProductAdminResponse])
 async def list_products_admin(
     skip: int = Query(0, ge=0),
-    limit: int = Query(20, ge=1, le=100),
+    limit: int = Query(1000, ge=1, le=5000),
     brand_id: int | None = Query(None),
     category_id: int | None = Query(None),
     q: str | None = Query(None),
@@ -84,6 +85,77 @@ async def create_product(
     await db.commit()
     await db.refresh(product)
     return ProductAdminResponse.model_validate(product)
+
+
+MAX_IMPORT_BYTES = 5 * 1024 * 1024
+
+
+@router.get("/import/template")
+async def download_import_template(admin: dict = Depends(get_current_admin)):
+    """Excel template for bulk-importing phones, with example rows and instructions."""
+    return Response(
+        content=importer.build_template_xlsx(),
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": 'attachment; filename="phone-import-template.xlsx"'},
+    )
+
+
+@router.post("/import")
+async def import_products(
+    file: UploadFile = File(...),
+    dry_run: bool = Query(True, description="Preview only; nothing is saved."),
+    admin: dict = Depends(get_current_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    """Create/update phones and stock from an .xlsx or .csv spreadsheet.
+
+    Always preview first (``dry_run=true``). With ``dry_run=false`` the import
+    is applied only if every row is valid.
+    """
+    content = await file.read(MAX_IMPORT_BYTES + 1)
+    if len(content) > MAX_IMPORT_BYTES:
+        raise HTTPException(
+            status_code=status.HTTP_413_CONTENT_TOO_LARGE,
+            detail=_build_error("FILE_TOO_LARGE", "The file is larger than 5 MB. Split it into smaller files."),
+        )
+    try:
+        results = importer.parse_spreadsheet(file.filename, content)
+    except importer.ImportFileError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail=_build_error("INVALID_FILE", str(exc)),
+        )
+
+    existing = await importer.plan_import(db, results)
+    summary = importer.summarize(results)
+    applied = False
+    stock = {"stock_added": 0, "stock_removed": 0}
+    if not dry_run:
+        if summary["error"]:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+                detail=_build_error("ROWS_HAVE_ERRORS", "Fix the rows with errors before importing."),
+            )
+        stock = await importer.apply_import(db, results, existing)
+        applied = True
+
+    return {
+        "applied": applied,
+        "summary": {**summary, **stock},
+        "rows": [
+            {
+                "row": r.row,
+                "model_number": r.model_number,
+                "name": r.name,
+                "action": r.action,
+                "errors": r.errors,
+                "warnings": r.warnings,
+                "stock_current": r.stock_current,
+                "stock_target": r.stock_target,
+            }
+            for r in results
+        ],
+    }
 
 
 @router.put("/{product_id}", response_model=ProductAdminResponse)
