@@ -163,7 +163,7 @@ const emptyIntake = {
   phone: '',
   customerId: null,
   device: '',
-  types: [],
+  repairType: '',
   details: '',
   cost: '',
 };
@@ -176,24 +176,20 @@ function QuickAddRepair({ deviceSuggestions, onCreated }) {
   const nameRef = useRef(null);
 
   const set = (field) => (e) => setForm((f) => ({ ...f, [field]: e.target.value }));
-  const toggleType = (type) =>
-    setForm((f) => ({
-      ...f,
-      types: f.types.includes(type) ? f.types.filter((t) => t !== type) : [...f.types, type],
-    }));
 
   const submit = async (e) => {
     e.preventDefault();
     setError('');
     setSaved('');
 
+    if (!form.name.trim()) return setError("Enter the customer's name.");
     if (!form.device.trim()) return setError('Enter the phone model.');
-    if (form.types.length === 0 && !form.details.trim()) return setError('Tap what needs fixing or write the problem.');
+    if (!form.repairType && !form.details.trim()) return setError('Choose what needs fixing or write the problem in the notes.');
     if (!form.customerId && !form.phone.trim()) return setError("Add the customer's phone number so you can call them when it's ready.");
 
     const body = {
       device_model: form.device.trim(),
-      repair_type: form.types.join(', ') || null,
+      repair_type: form.repairType || null,
       issue_description: form.details.trim(),
       estimated_cost: parseFloat(form.cost) || 0,
     };
@@ -221,93 +217,80 @@ function QuickAddRepair({ deviceSuggestions, onCreated }) {
     }
   };
 
+  const label = 'block text-xs font-semibold text-stone-600 mb-1';
+  const required = <span className="text-brand-600">*</span>;
+
   return (
-    <form onSubmit={submit} className="mb-6 bg-white rounded-lg border border-stone-200 shadow-sm">
-      <div className="px-5 py-3 border-b border-stone-200 flex items-center justify-between gap-3">
+    <form onSubmit={submit} className="bg-white rounded-lg border border-stone-200 shadow-sm">
+      <div className="px-5 py-3 border-b border-stone-200">
         <h2 className="font-display text-lg font-bold uppercase tracking-wide text-stone-800">New repair</h2>
-        {saved && <span className="text-sm font-medium text-terrace-700">✓ {saved}</span>}
       </div>
 
-      <div className="p-5 space-y-4">
+      <div className="p-5 space-y-3">
         {error && (
           <div className="px-3 py-2 bg-brand-50 border border-brand-200 text-brand-800 text-sm rounded-md">{error}</div>
         )}
+        {saved && (
+          <div className="px-3 py-2 bg-terrace-50 border border-terrace-200 text-terrace-800 text-sm rounded-md">✓ {saved}</div>
+        )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3">
-          <label className="lg:col-span-3">
-            <span className="block text-xs font-semibold text-stone-600 mb-1">Customer</span>
-            <CustomerNameField
-              inputRef={nameRef}
-              name={form.name}
-              customerId={form.customerId}
-              onType={(name) => setForm((f) => ({ ...f, name, customerId: null }))}
-              onPick={(c) => setForm((f) => ({ ...f, name: c.name || '', phone: c.phone_number, customerId: c.id }))}
-            />
-          </label>
-          <label className="lg:col-span-3">
-            <span className="block text-xs font-semibold text-stone-600 mb-1">
-              Phone number {form.customerId && <span className="font-normal text-terrace-700">· returning customer</span>}
-            </span>
-            <input
-              value={form.phone}
-              onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value, customerId: null }))}
-              placeholder="09xx xxx xxxx"
-              inputMode="tel"
-              className={inputClass}
-            />
-          </label>
-          <label className="lg:col-span-4">
-            <span className="block text-xs font-semibold text-stone-600 mb-1">Phone model</span>
-            <input value={form.device} onChange={set('device')} list="repair-devices"
-              placeholder="e.g. Redmi Note 13" autoComplete="off" className={inputClass} />
-            <datalist id="repair-devices">
-              {deviceSuggestions.map((d) => <option key={d} value={d} />)}
-            </datalist>
-          </label>
-          <label className="lg:col-span-2">
-            <span className="block text-xs font-semibold text-stone-600 mb-1">Est. cost (₱)</span>
-            <input type="number" min="0" step="0.01" value={form.cost} onChange={set('cost')}
-              placeholder="0" className={inputClass} />
-          </label>
-        </div>
+        <label className="block">
+          <span className={label}>Customer name {required}</span>
+          <CustomerNameField
+            inputRef={nameRef}
+            name={form.name}
+            customerId={form.customerId}
+            onType={(name) => setForm((f) => ({ ...f, name, customerId: null }))}
+            onPick={(c) => setForm((f) => ({ ...f, name: c.name || '', phone: c.phone_number, customerId: c.id }))}
+          />
+        </label>
+        <label className="block">
+          <span className={label}>
+            Phone number {form.customerId && <span className="font-normal text-terrace-700">· returning customer</span>}
+          </span>
+          <input
+            value={form.phone}
+            onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value, customerId: null }))}
+            placeholder="09xx xxx xxxx"
+            inputMode="tel"
+            className={inputClass}
+          />
+        </label>
+        <label className="block">
+          <span className={label}>Phone model {required}</span>
+          <input value={form.device} onChange={set('device')} list="repair-devices"
+            placeholder="e.g. Redmi Note 13" autoComplete="off" className={inputClass} />
+          <datalist id="repair-devices">
+            {deviceSuggestions.map((d) => <option key={d} value={d} />)}
+          </datalist>
+        </label>
+        <label className="block">
+          <span className={label}>What needs fixing</span>
+          <select value={form.repairType} onChange={set('repairType')}
+            className={`${inputClass} ${form.repairType ? '' : 'text-stone-400'}`}>
+            <option value="">Choose…</option>
+            {REPAIR_TYPES.map((type) => <option key={type} value={type} className="text-stone-800">{type}</option>)}
+          </select>
+        </label>
+        <label className="block">
+          <span className={label}>Notes for the technician</span>
+          <textarea value={form.details} onChange={set('details')} rows={2}
+            placeholder="e.g. cracked at the top corner, passcode 1234"
+            className={`${inputClass} resize-none`} />
+        </label>
+        <label className="block">
+          <span className={label}>Est. cost (₱)</span>
+          <input type="number" min="0" step="0.01" value={form.cost} onChange={set('cost')}
+            placeholder="0" className={inputClass} />
+        </label>
 
-        <div>
-          <span className="block text-xs font-semibold text-stone-600 mb-1.5">What needs fixing</span>
-          <div className="flex flex-wrap gap-2">
-            {REPAIR_TYPES.map((type) => {
-              const on = form.types.includes(type);
-              return (
-                <button
-                  key={type}
-                  type="button"
-                  onClick={() => toggleType(type)}
-                  aria-pressed={on}
-                  className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
-                    on
-                      ? 'bg-ink-900 text-white border-ink-900'
-                      : 'bg-white text-stone-700 border-stone-300 hover:border-stone-400'
-                  }`}
-                >
-                  {on && '✓ '}
-                  {type}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        <div className="flex flex-col sm:flex-row gap-3">
-          <input value={form.details} onChange={set('details')}
-            placeholder="Notes for the technician (optional) — e.g. cracked at the top corner, passcode 1234"
-            className={`${inputClass} flex-1`} />
-          <button
-            type="submit"
-            disabled={saving}
-            className="px-6 py-2 text-sm font-semibold text-white bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 rounded-md transition-colors whitespace-nowrap"
-          >
-            {saving ? 'Adding…' : 'Add repair'}
-          </button>
-        </div>
+        <button
+          type="submit"
+          disabled={saving}
+          className="w-full px-6 py-2.5 text-sm font-semibold text-white bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 rounded-md transition-colors"
+        >
+          {saving ? 'Adding…' : 'Add repair'}
+        </button>
       </div>
     </form>
   );
@@ -384,7 +367,7 @@ function StatusActions({ currentStatus, onChange }) {
   ];
 
   return (
-    <div className="flex items-center justify-end gap-2">
+    <div className="flex flex-col items-end gap-1.5 min-[1400px]:flex-row min-[1400px]:items-center min-[1400px]:justify-end min-[1400px]:gap-2">
       {next && (
         <button
           onClick={() => onChange(next.status)}
@@ -484,102 +467,108 @@ export default function Repairs() {
         </p>
       </div>
 
-      <QuickAddRepair deviceSuggestions={deviceSuggestions} onCreated={fetchData} />
-
-      {error && (
-        <div className="mb-4 px-4 py-3 bg-brand-50 border border-brand-200 text-brand-800 text-sm rounded-lg flex items-center justify-between">
-          <span>{error}</span>
-          <button onClick={() => setError('')} className="text-brand-500 hover:text-brand-700 ml-2">&times;</button>
+      <div className="grid grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)] min-[1400px]:grid-cols-[330px_minmax(0,1fr)] gap-6 items-start">
+        {/* Left box: add a repair */}
+        <div className="lg:sticky lg:top-0">
+          <QuickAddRepair deviceSuggestions={deviceSuggestions} onCreated={fetchData} />
         </div>
-      )}
 
-      {/* Search and stage filter (the chips double as the color legend) */}
-      <div className="mb-4 flex flex-wrap items-center gap-2">
-        <input
-          type="search"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search name, phone, model or job #"
-          className="w-full sm:w-72 px-3 py-2 border border-stone-300 rounded-md text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500"
-        />
-        <button onClick={() => setStageFilter('active')} className={chipClass(stageFilter === 'active')}>
-          In the shop <span className="opacity-60">{activeCount}</span>
-        </button>
-        {STAGES.map((stage) => (
-          <button key={stage.key} onClick={() => setStageFilter(stage.key)} className={chipClass(stageFilter === stage.key)}>
-            <span className={`h-2 w-2 rounded-full ${stage.dot}`} />
-            {stage.label} <span className="opacity-60">{stageCounts[stage.key] || 0}</span>
-          </button>
-        ))}
-        <button onClick={() => setStageFilter('all')} className={chipClass(stageFilter === 'all')}>
-          All <span className="opacity-60">{searched.length}</span>
-        </button>
-      </div>
+        {/* Right box: the list */}
+        <div className="min-w-0">
+          {error && (
+            <div className="mb-4 px-4 py-3 bg-brand-50 border border-brand-200 text-brand-800 text-sm rounded-lg flex items-center justify-between">
+              <span>{error}</span>
+              <button onClick={() => setError('')} className="text-brand-500 hover:text-brand-700 ml-2">&times;</button>
+            </div>
+          )}
 
-      {/* Table */}
-      <div className="bg-white rounded-lg border border-stone-200 overflow-x-auto shadow-sm">
-        {loading ? (
-          <div className="p-8 space-y-4">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="h-10 bg-stone-100 rounded animate-pulse" />
+          {/* Search and stage filter (the chips double as the color legend) */}
+          <div className="mb-4 flex flex-wrap items-center gap-2">
+            <input
+              type="search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search name, phone, model or job #"
+              className="w-full sm:w-64 px-3 py-2 border border-stone-300 rounded-md text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500"
+            />
+            <button onClick={() => setStageFilter('active')} className={chipClass(stageFilter === 'active')}>
+              In the shop <span className="opacity-60">{activeCount}</span>
+            </button>
+            {STAGES.map((stage) => (
+              <button key={stage.key} onClick={() => setStageFilter(stage.key)} className={chipClass(stageFilter === stage.key)}>
+                <span className={`h-2 w-2 rounded-full ${stage.dot}`} />
+                {stage.label} <span className="opacity-60">{stageCounts[stage.key] || 0}</span>
+              </button>
             ))}
+            <button onClick={() => setStageFilter('all')} className={chipClass(stageFilter === 'all')}>
+              All <span className="opacity-60">{searched.length}</span>
+            </button>
           </div>
-        ) : visible.length === 0 ? (
-          <div className="text-center py-12 text-stone-500">
-            <p className="text-lg font-medium">No repairs here</p>
-            <p className="text-sm mt-1">
-              {search ? 'Nothing matches that search.' : repairs.length ? 'Nothing in this stage right now.' : 'Add the first one with the form above.'}
-            </p>
+
+          {/* Table */}
+          <div className="bg-white rounded-lg border border-stone-200 overflow-x-auto shadow-sm">
+            {loading ? (
+              <div className="p-8 space-y-4">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="h-10 bg-stone-100 rounded animate-pulse" />
+                ))}
+              </div>
+            ) : visible.length === 0 ? (
+              <div className="text-center py-12 text-stone-500">
+                <p className="text-lg font-medium">No repairs here</p>
+                <p className="text-sm mt-1">
+                  {search ? 'Nothing matches that search.' : repairs.length ? 'Nothing in this stage right now.' : 'Add the first one with the New repair form.'}
+                </p>
+              </div>
+            ) : (
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-stone-50 border-b border-stone-200 text-left">
+                    <th className="px-3 py-3 font-semibold text-stone-600">Job</th>
+                    <th className="px-3 py-3 font-semibold text-stone-600">Customer &amp; phone</th>
+                    <th className="px-3 py-3 font-semibold text-stone-600">Repair</th>
+                    <th className="px-3 py-3 font-semibold text-stone-600">Status</th>
+                    <th className="px-3 py-3 font-semibold text-stone-600 text-right">Update</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-stone-100">
+                  {visible.map((repair) => (
+                    <tr key={repair.id} className="hover:bg-stone-50 transition-colors align-top">
+                      <td className={`px-3 py-3 border-l-4 ${stageOf(repair.status).bar} whitespace-nowrap`}>
+                        <div className="font-semibold text-stone-800 tabular-nums">{jobNumber(repair.id)}</div>
+                        <div className="text-xs text-stone-500">{receivedLabel(repair.created_at || repair.updated_at)}</div>
+                      </td>
+                      <td className="px-3 py-3">
+                        <div className="font-medium text-stone-800">{repair.customer_name || `Customer #${repair.customer_id}`}</div>
+                        {repair.customer_phone && <div className="text-xs text-stone-500 whitespace-nowrap">{repair.customer_phone}</div>}
+                        <div className="text-xs font-semibold text-stone-700 mt-0.5">{repair.device_model}</div>
+                      </td>
+                      <td className="px-3 py-3 min-w-[120px] max-w-[260px]">
+                        {repair.repair_type && <div className="font-medium text-stone-800">{repair.repair_type}</div>}
+                        {repair.issue_description && <div className="text-xs text-stone-500 break-words">{repair.issue_description}</div>}
+                      </td>
+                      <td className="px-3 py-3">
+                        <RepairStatusBadge status={repair.status} />
+                        <div className="mt-1">
+                          <InlineCost
+                            value={repair.estimated_cost || 0}
+                            onSave={(cost) => updateRepair(repair.id, { estimated_cost: cost }, 'Failed to update cost.')}
+                          />
+                        </div>
+                      </td>
+                      <td className="px-3 py-3 text-right">
+                        <StatusActions
+                          currentStatus={repair.status}
+                          onChange={(status) => updateRepair(repair.id, { status }, 'Failed to update repair status.')}
+                        />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
-        ) : (
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="bg-stone-50 border-b border-stone-200 text-left">
-                <th className="px-4 py-3 font-semibold text-stone-600">Job</th>
-                <th className="px-4 py-3 font-semibold text-stone-600">Customer</th>
-                <th className="px-4 py-3 font-semibold text-stone-600">Phone model</th>
-                <th className="px-4 py-3 font-semibold text-stone-600">Repair</th>
-                <th className="px-4 py-3 font-semibold text-stone-600">Status</th>
-                <th className="px-4 py-3 font-semibold text-stone-600">Est. cost</th>
-                <th className="px-4 py-3 font-semibold text-stone-600 text-right">Update</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-stone-100">
-              {visible.map((repair) => (
-                <tr key={repair.id} className="hover:bg-stone-50 transition-colors align-top">
-                  <td className={`px-4 py-3 border-l-4 ${stageOf(repair.status).bar} whitespace-nowrap`}>
-                    <div className="font-semibold text-stone-800 tabular-nums">{jobNumber(repair.id)}</div>
-                    <div className="text-xs text-stone-500">{receivedLabel(repair.created_at || repair.updated_at)}</div>
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="font-medium text-stone-800">{repair.customer_name || `Customer #${repair.customer_id}`}</div>
-                    {repair.customer_phone && <div className="text-xs text-stone-500 whitespace-nowrap">{repair.customer_phone}</div>}
-                  </td>
-                  <td className="px-4 py-3 text-stone-700 font-medium">{repair.device_model}</td>
-                  <td className="px-4 py-3 max-w-[280px]">
-                    {repair.repair_type && <div className="font-medium text-stone-800">{repair.repair_type}</div>}
-                    {repair.issue_description && <div className="text-stone-500 break-words">{repair.issue_description}</div>}
-                  </td>
-                  <td className="px-4 py-3">
-                    <RepairStatusBadge status={repair.status} />
-                  </td>
-                  <td className="px-4 py-3">
-                    <InlineCost
-                      value={repair.estimated_cost || 0}
-                      onSave={(cost) => updateRepair(repair.id, { estimated_cost: cost }, 'Failed to update cost.')}
-                    />
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <StatusActions
-                      currentStatus={repair.status}
-                      onChange={(status) => updateRepair(repair.id, { status }, 'Failed to update repair status.')}
-                    />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+        </div>
       </div>
     </div>
   );
