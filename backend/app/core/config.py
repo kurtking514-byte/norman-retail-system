@@ -19,6 +19,8 @@ class Settings(BaseSettings):
     MESSENGER_VERIFY_TOKEN: str = "norman_secure_webhook_token_2026"
     MESSENGER_PAGE_ACCESS_TOKEN: str = ""
     JWT_SECRET_KEY: str = ""
+    # How long an admin login lasts before the dashboard asks to log in again
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
     ENVIRONMENT: str = "development"
     PORT: int = 8000
 

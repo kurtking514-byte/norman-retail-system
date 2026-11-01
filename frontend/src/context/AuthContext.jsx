@@ -3,10 +3,12 @@ import { login as authLogin, logout as authLogout, getToken, isAuthenticated } f
 
 const AuthContext = createContext(null);
 
-// The token has a "sub" claim containing the username
+// The token has a "sub" claim containing the username and an "exp" claim
+// (seconds since epoch). Expired or malformed tokens count as logged out.
 function decodeUsername(token) {
   try {
     const payload = JSON.parse(atob(token.split('.')[1]));
+    if (payload.exp && payload.exp * 1000 <= Date.now()) return null;
     return payload.sub || 'Admin';
   } catch {
     return null;
@@ -24,7 +26,7 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     if (!token && getToken()) {
-      // Stored token was malformed — clear it
+      // Stored token was malformed or expired — clear it
       authLogout();
     }
   }, [token]);

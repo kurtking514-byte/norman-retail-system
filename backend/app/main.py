@@ -9,6 +9,7 @@ from app.api.v1.router import router as api_v1_router
 from app.core.config import settings
 from app.core.database import init_db
 from app.core.logging_config import get_logger, setup_logging
+from app.core.security import MIN_JWT_SECRET_LENGTH
 
 setup_logging()
 logger = get_logger(__name__)
@@ -19,6 +20,17 @@ async def lifespan(app: FastAPI):
     """Application lifespan: initialize DB on startup."""
     await init_db()
     logger.info("Database initialized")
+    if len(settings.JWT_SECRET_KEY) < MIN_JWT_SECRET_LENGTH:
+        logger.error(
+            "JWT_SECRET_KEY is missing or shorter than %s characters — admin login "
+            "tokens can be forged. Set a long random value.",
+            MIN_JWT_SECRET_LENGTH,
+        )
+    if not settings.META_APP_SECRET:
+        logger.warning(
+            "META_APP_SECRET is not set — webhook signatures are not verified, so "
+            "anyone can post fake Messenger events."
+        )
     yield
 
 

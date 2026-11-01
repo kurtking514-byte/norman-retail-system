@@ -50,6 +50,15 @@ async def setup_db():
         pass
 
 
+@pytest.fixture(autouse=True)
+def reset_login_limiter():
+    """Clear failed-login counts so tests that try wrong passwords don't lock out others."""
+    from app.core.rate_limit import login_limiter
+    login_limiter.reset()
+    yield
+    login_limiter.reset()
+
+
 # Register custom markers so pytest does not warn about them.
 def pytest_configure(config):
     config.addinivalue_line("markers", "asyncio: mark test as async")
