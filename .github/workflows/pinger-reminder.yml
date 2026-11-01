@@ -1,0 +1,61 @@
+# GitHub pauses scheduled workflows (like "Keep backend awake") after 60 days
+# with no commits. Once a day this checks how long it's been since the last
+# commit and, from day 50, opens an issue so GitHub emails a reminder.
+# The issue closes itself after the next commit.
+name: Pinger reminder
+
+on:
+  schedule:
+    - cron: "0 0 * * *" # 8:00 AM Philippine time
+  workflow_dispatch:
+    inputs:
+      warn_after_days:
+        description: "Warn when the last commit is at least this many days old (use 0 to test)"
+        default: "50"
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      WARN_AFTER_DAYS: ${{ inputs.warn_after_days || '50' }}
+      TITLE: "Reminder: the backend pinger is about to turn off"
+    steps:
+      - name: Check days since the last commit
+        run: |
+          last=$(gh api "repos/$GH_REPO/commits?per_page=1" --jq '.[0].commit.committer.date')
+          days=$(( ( $(date +%s) - $(date -d "$last" +%s) ) / 86400 ))
+          left=$(( 60 - days ))
+          echo "Last commit $last ($days days ago, about $left days left)"
+
+          open=$(gh issue list --state open --search "in:title \"$TITLE\"" --json number --jq '.[0].number')
+
+          if [ "$days" -lt "$WARN_AFTER_DAYS" ]; then
+            if [ -n "$open" ]; then
+              gh issue close "$open" --comment "There's a new commit, so the pinger stays on. Closing this reminder."
+            fi
+            exit 0
+          fi
+
+          [ -n "$open" ] && { echo "Reminder already open (#$open)"; exit 0; }
+
+          gh issue create --title "$TITLE" --body "$(cat <<EOF
+          The last commit to this repo was **$days days ago**. GitHub pauses scheduled
+          workflows after 60 days with no commits, so **Keep backend awake** turns off in
+          about **$left days**. After that the dashboard goes back to taking 30-60 seconds
+          to load after it has been idle.
+
+          **To keep it on:** push any commit to \`main\`.
+
+          **If it already turned off:** open the Actions tab, choose *Keep backend awake*,
+          and click **Enable workflow**.
+
+          This issue closes itself after the next commit.
+          EOF
+          )"
