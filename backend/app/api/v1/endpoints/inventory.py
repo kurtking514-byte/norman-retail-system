@@ -44,6 +44,17 @@ async def list_inventory(
     return [InventoryItemResponse.model_validate(item) for item in items]
 
 
+@router.get("/summary", response_model=dict[int, int])
+async def inventory_summary(
+    admin: dict = Depends(get_current_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    """In-stock unit count per product id — lighter than listing every unit."""
+    from app.services.stock_service import in_stock_counts
+
+    return await in_stock_counts(db)
+
+
 @router.post("", response_model=InventoryItemResponse, status_code=status.HTTP_201_CREATED)
 async def create_inventory_item(
     body: InventoryItemCreate,

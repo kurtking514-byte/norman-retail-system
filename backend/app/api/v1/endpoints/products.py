@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, File, HTTPException, Query, Response, UploadFile, status
+from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -174,11 +175,60 @@ async def update_product(
         )
 
     update_data = body.model_dump(exclude_unset=True)
+    cost = update_data.get("cost_price", float(product.cost_price))
+    price = update_data.get("selling_price", float(product.selling_price))
+    if price <= cost:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail=_build_error("VALIDATION_ERROR", "selling_price must be greater than cost_price."),
+        )
+    new_model = update_data.get("model_number")
+    if new_model and new_model != product.model_number:
+        clash = await db.execute(select(Product).where(Product.model_number == new_model))
+        if clash.scalar_one_or_none() is not None:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=_build_error(
+                    "DUPLICATE_MODEL_NUMBER",
+                    f"A product with model_number '{new_model}' already exists.",
+                ),
+            )
     for key, value in update_data.items():
         setattr(product, key, value)
     await db.commit()
     await db.refresh(product)
     return ProductAdminResponse.model_validate(product)
+
+
+class StockUpdate(BaseModel):
+    in_stock: int = Field(ge=0, le=10000)
+
+
+@router.put("/{product_id}/stock")
+async def set_product_stock(
+    product_id: int,
+    body: StockUpdate,
+    admin: dict = Depends(get_current_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    """Set how many units are in the store by adding/removing untracked units."""
+    from app.services.stock_service import in_stock_counts, set_in_stock
+
+    product = (await db.execute(select(Product).where(Product.id == product_id))).scalar_one_or_none()
+    if product is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=_build_error("NOT_FOUND", f"Product with id {product_id} not found."),
+        )
+    current = (await in_stock_counts(db, [product_id])).get(product_id, 0)
+    added, removed, warning = await set_in_stock(db, product_id, current, body.in_stock)
+    await db.commit()
+    return {
+        "in_stock": current + added - removed,
+        "added": added,
+        "removed": removed,
+        "warning": warning,
+    }
 
 
 @router.delete("/{product_id}", status_code=status.HTTP_204_NO_CONTENT)

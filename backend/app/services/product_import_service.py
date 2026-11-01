@@ -19,7 +19,8 @@ from dataclasses import dataclass, field
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.product import Brand, Category, Inventory, Product
+from app.models.product import Brand, Category, Product
+from app.services.stock_service import in_stock_counts, set_in_stock
 
 MAX_ROWS = 5000
 
@@ -263,17 +264,6 @@ def parse_spreadsheet(filename: str, content: bytes) -> list[RowResult]:
 # ---------------------------------------------------------------------------
 
 
-async def _in_stock_counts(db: AsyncSession, product_ids: list[int]) -> dict[int, int]:
-    if not product_ids:
-        return {}
-    result = await db.execute(
-        select(Inventory.product_id, func.count())
-        .where(Inventory.product_id.in_(product_ids), Inventory.status == "In Stock")
-        .group_by(Inventory.product_id)
-    )
-    return dict(result.all())
-
-
 async def plan_import(db: AsyncSession, results: list[RowResult]) -> dict[str, Product]:
     """Decide create/update/unchanged for each valid row. Returns existing products by model number."""
     models = [r.model_number for r in results if r.model_number]
@@ -283,7 +273,7 @@ async def plan_import(db: AsyncSession, results: list[RowResult]) -> dict[str, P
         res = await db.execute(select(Product).where(Product.model_number.in_(chunk)))
         for p in res.scalars():
             existing[p.model_number] = p
-    stock = await _in_stock_counts(db, [p.id for p in existing.values()])
+    stock = await in_stock_counts(db, [p.id for p in existing.values()])
 
     brands = {b.name.lower() for b in (await db.execute(select(Brand))).scalars()}
     categories = {c.name.lower() for c in (await db.execute(select(Category))).scalars()}
@@ -353,31 +343,13 @@ async def apply_import(db: AsyncSession, results: list[RowResult], existing: dic
 
         if r.stock_target is None:
             continue
-        diff = r.stock_target - (r.stock_current or 0)
-        if diff > 0:
-            db.add_all(Inventory(product_id=product.id, status="In Stock") for _ in range(diff))
-            added += diff
-        elif diff < 0:
-            # Only remove untracked units (no serial number), newest first
-            res = await db.execute(
-                select(Inventory)
-                .where(
-                    Inventory.product_id == product.id,
-                    Inventory.status == "In Stock",
-                    Inventory.serial_number.is_(None),
-                )
-                .order_by(Inventory.id.desc())
-                .limit(-diff)
-            )
-            units = res.scalars().all()
-            for unit in units:
-                await db.delete(unit)
-            removed += len(units)
-            if len(units) < -diff:
-                r.warnings.append(
-                    f"Only {len(units)} unit(s) could be removed — the rest have serial numbers. "
-                    "Mark them Sold in Inventory instead."
-                )
+        stock_added, stock_removed, warning = await set_in_stock(
+            db, product.id, r.stock_current or 0, r.stock_target
+        )
+        added += stock_added
+        removed += stock_removed
+        if warning:
+            r.warnings.append(warning)
     await db.commit()
     return {"stock_added": added, "stock_removed": removed}
 

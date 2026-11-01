@@ -1,249 +1,164 @@
-            import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import api from '../services/api';
 import StatusBadge from '../components/common/StatusBadge';
 import ImportProductsModal from '../components/inventory/ImportProductsModal';
+import ProductPanel from '../components/inventory/ProductPanel';
 
 /**
- * Inventory page — product table with search, add-product modal, and delete.
+ * Inventory page — every product with brand/category names, category tabs,
+ * brand/stock filters and search. Clicking a product opens a side panel to
+ * view and edit its details, specs and stock.
  *
- * NOTE: Brand/Category names aren't fetchable yet (no /brands or /categories
- * endpoints exist until later phases) — showing raw brand_id/category_id for now.
- * TODO: replace with brand/category name once endpoints exist.
+ * The full product list (up to 1000) is loaded once and filtered in the
+ * browser so tabs and search respond instantly.
  */
 
-// ---------------------------------------------------------------------------
-// Add Product Modal
-// ---------------------------------------------------------------------------
-const defaultForm = {
-  name: '',
-  model_number: '',
-  brand_id: 1,
-  category_id: 1,
-  cost_price: '',
-  selling_price: '',
-  warranty_months: 12,
-  description: '',
-};
+const LOW_STOCK = 3;
 
-function AddProductModal({ open, onClose, onCreated }) {
-  const [form, setForm] = useState(defaultForm);
-  const [error, setError] = useState('');
-  const [submitting, setSubmitting] = useState(false);
+const peso = new Intl.NumberFormat('en-PH', {
+  style: 'currency',
+  currency: 'PHP',
+  maximumFractionDigits: 2,
+});
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-  };
+const STOCK_FILTERS = [
+  { value: 'all', label: 'Any stock' },
+  { value: 'in', label: 'In stock' },
+  { value: 'low', label: `Low (${LOW_STOCK} or fewer)` },
+  { value: 'out', label: 'Out of stock' },
+];
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-
-    const cost = parseFloat(form.cost_price);
-    const selling = parseFloat(form.selling_price);
-
-    // Client-side validation: selling_price must be > cost_price
-    if (isNaN(cost) || isNaN(selling)) {
-      setError('Please enter valid prices.');
-      return;
-    }
-    if (selling <= cost) {
-      setError('Selling price must be greater than cost price.');
-      return;
-    }
-
-    setSubmitting(true);
-    try {
-      await api.post('/products', {
-        name: form.name,
-        model_number: form.model_number,
-        brand_id: parseInt(form.brand_id, 10),
-        category_id: parseInt(form.category_id, 10),
-        cost_price: cost,
-        selling_price: selling,
-        warranty_months: parseInt(form.warranty_months, 10) || 12,
-        description: form.description || null,
-      });
-      setForm(defaultForm);
-      onCreated();
-      onClose();
-    } catch (err) {
-      const data = err.response?.data;
-      if (data?.error?.message) {
-        setError(data.error.message);
-      } else if (data?.detail?.error?.message) {
-        setError(data.detail.error.message);
-      } else {
-        setError('Failed to create product. Please try again.');
-      }
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  if (!open) return null;
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
-        <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-slate-800">Add Product</h2>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 text-xl leading-none">&times;</button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          {error && (
-            <div className="px-4 py-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg">
-              {error}
-            </div>
-          )}
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="col-span-2">
-              <label className="block text-sm font-medium text-slate-700 mb-1">Name *</label>
-              <input name="name" value={form.name} onChange={handleChange} required
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-            </div>
-            <div className="col-span-2">
-              <label className="block text-sm font-medium text-slate-700 mb-1">Model Number *</label>
-              <input name="model_number" value={form.model_number} onChange={handleChange} required
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Brand ID *</label>
-              <input name="brand_id" type="number" value={form.brand_id} onChange={handleChange} required
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Category ID *</label>
-              <input name="category_id" type="number" value={form.category_id} onChange={handleChange} required
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Cost Price *</label>
-              <input name="cost_price" type="number" step="0.01" value={form.cost_price} onChange={handleChange} required
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Selling Price *</label>
-              <input name="selling_price" type="number" step="0.01" value={form.selling_price} onChange={handleChange} required
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Warranty (months)</label>
-              <input name="warranty_months" type="number" value={form.warranty_months} onChange={handleChange}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-            </div>
-            <div></div>
-            <div className="col-span-2">
-              <label className="block text-sm font-medium text-slate-700 mb-1">Description</label>
-              <textarea name="description" rows="3" value={form.description} onChange={handleChange}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-            </div>
-          </div>
-
-          <div className="flex justify-end gap-3 pt-2">
-            <button type="button" onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors">
-              Cancel
-            </button>
-            <button type="submit" disabled={submitting}
-              className={`px-4 py-2 text-sm font-semibold text-white rounded-lg transition-colors ${
-                submitting ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
-              }`}>
-              {submitting ? 'Saving...' : 'Add Product'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
+function matchesStock(count, filter) {
+  if (filter === 'in') return count > 0;
+  if (filter === 'low') return count > 0 && count <= LOW_STOCK;
+  if (filter === 'out') return count === 0;
+  return true;
 }
 
-// ---------------------------------------------------------------------------
-// Stock Badge (delegated to shared StatusBadge)
-// ---------------------------------------------------------------------------
-// Main Inventory Page
-// ---------------------------------------------------------------------------
 export default function Inventory() {
   const [products, setProducts] = useState([]);
-  const [inventoryMap, setInventoryMap] = useState({});
+  const [stock, setStock] = useState({});
+  const [brands, setBrands] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [search, setSearch] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [showModal, setShowModal] = useState(false);
-  const [showImport, setShowImport] = useState(false);
-  const [deletingId, setDeletingId] = useState(null);
-  const debounceRef = useRef(null);
 
-  // Debounce search input — 300ms
-  useEffect(() => {
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => {
-      setDebouncedSearch(search);
-    }, 300);
-    return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-    };
-  }, [search]);
+  const [categoryTab, setCategoryTab] = useState('all');
+  const [brandFilter, setBrandFilter] = useState('all');
+  const [stockFilter, setStockFilter] = useState('all');
+  const [showHidden, setShowHidden] = useState(false);
+  const [search, setSearch] = useState('');
+
+  const [panel, setPanel] = useState(null); // null | { product } (product null = new)
+  const [showImport, setShowImport] = useState(false);
+  const [busyId, setBusyId] = useState(null);
 
   const fetchData = useCallback(async () => {
-    setLoading(true);
     setError('');
     try {
-      // Fetch products with search query if debouncedSearch is set
-      const params = {};
-      if (debouncedSearch.trim()) {
-        params.q = debouncedSearch.trim();
-      }
-      const productsRes = await api.get('/products', { params });
-
-      // Fetch all inventory once and group by product_id (efficient approach)
-      const inventoryRes = await api.get('/inventory');
-      const stockCounts = {};
-      for (const item of inventoryRes.data) {
-        const pid = item.product_id;
-        if (!stockCounts[pid]) stockCounts[pid] = 0;
-        if (item.status === 'In Stock') stockCounts[pid] += 1;
-      }
-
+      const [productsRes, stockRes, brandsRes, categoriesRes] = await Promise.all([
+        api.get('/products'),
+        api.get('/inventory/summary'),
+        api.get('/brands'),
+        api.get('/categories'),
+      ]);
       setProducts(productsRes.data);
-      setInventoryMap(stockCounts);
+      setStock(stockRes.data);
+      setBrands(brandsRes.data);
+      setCategories(categoriesRes.data);
     } catch (err) {
       setError('Failed to load products.');
     } finally {
       setLoading(false);
     }
-  }, [debouncedSearch]);
+  }, []);
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
-  const handleDelete = async (productId) => {
-    if (!window.confirm('Are you sure you want to delete this product?')) return;
-    setDeletingId(productId);
+  const brandName = useMemo(() => Object.fromEntries(brands.map((b) => [b.id, b.name])), [brands]);
+  const categoryName = useMemo(
+    () => Object.fromEntries(categories.map((c) => [c.id, c.name])),
+    [categories],
+  );
+  const stockOf = (p) => stock[p.id] || 0;
+
+  // Everything except the category tab, so tab counts reflect the other filters
+  const baseFiltered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return products.filter((p) => {
+      if (!showHidden && p.is_active === false) return false;
+      if (brandFilter !== 'all' && String(p.brand_id) !== brandFilter) return false;
+      if (!matchesStock(stock[p.id] || 0, stockFilter)) return false;
+      if (!q) return true;
+      return (
+        p.name.toLowerCase().includes(q) ||
+        p.model_number.toLowerCase().includes(q) ||
+        (brandName[p.brand_id] || '').toLowerCase().includes(q)
+      );
+    });
+  }, [products, stock, search, brandFilter, stockFilter, showHidden, brandName]);
+
+  const tabCounts = useMemo(() => {
+    const counts = {};
+    baseFiltered.forEach((p) => {
+      counts[p.category_id] = (counts[p.category_id] || 0) + 1;
+    });
+    return counts;
+  }, [baseFiltered]);
+
+  const visible = useMemo(
+    () =>
+      baseFiltered
+        .filter((p) => categoryTab === 'all' || String(p.category_id) === categoryTab)
+        .sort((a, b) => a.name.localeCompare(b.name)),
+    [baseFiltered, categoryTab],
+  );
+
+  const totalUnits = Object.values(stock).reduce((sum, c) => sum + c, 0);
+  const activeCount = products.filter((p) => p.is_active !== false).length;
+  const filtersOn = search || brandFilter !== 'all' || stockFilter !== 'all' || showHidden;
+
+  const setVisibility = async (product, isActive) => {
+    if (!isActive && !window.confirm(`Hide "${product.name}"? It won't be offered by the chatbot until you show it again.`)) {
+      return;
+    }
+    setBusyId(product.id);
     try {
-      await api.delete(`/products/${productId}`);
-      setProducts((prev) => prev.map((p) => (p.id === productId ? { ...p, is_active: false } : p)));
+      if (isActive) {
+        await api.put(`/products/${product.id}`, { is_active: true });
+      } else {
+        await api.delete(`/products/${product.id}`);
+      }
+      setProducts((prev) => prev.map((p) => (p.id === product.id ? { ...p, is_active: isActive } : p)));
     } catch (err) {
-      setError('Failed to delete product.');
+      setError(`Failed to ${isActive ? 'show' : 'hide'} product.`);
     } finally {
-      setDeletingId(null);
+      setBusyId(null);
     }
   };
 
-  const totalStockCount = Object.values(inventoryMap).reduce((sum, c) => sum + c, 0);
+  const clearFilters = () => {
+    setSearch('');
+    setBrandFilter('all');
+    setStockFilter('all');
+    setShowHidden(false);
+  };
+
+  const tabClass = (active) =>
+    `px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+      active ? 'bg-slate-800 text-white' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+    }`;
 
   return (
     <div>
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between gap-4 mb-5">
         <div>
           <h1 className="text-2xl font-bold text-slate-800">Inventory</h1>
           <p className="text-sm text-slate-500 mt-0.5">
-            {loading ? 'Loading...' : `${products.length} products \u00B7 ${totalStockCount} units in stock`}
+            {loading ? 'Loading...' : `${activeCount} products · ${totalUnits} units in stock`}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -254,7 +169,7 @@ export default function Inventory() {
             Import spreadsheet
           </button>
           <button
-            onClick={() => setShowModal(true)}
+            onClick={() => setPanel({ product: null })}
             className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-colors shadow-sm"
           >
             + Add Product
@@ -262,7 +177,6 @@ export default function Inventory() {
         </div>
       </div>
 
-      {/* Error banner */}
       {error && (
         <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg flex items-center justify-between">
           <span>{error}</span>
@@ -270,15 +184,59 @@ export default function Inventory() {
         </div>
       )}
 
-      {/* Search */}
-      <div className="mb-4">
+      {/* Category tabs */}
+      <div className="flex gap-2 overflow-x-auto pb-1 mb-3">
+        <button className={tabClass(categoryTab === 'all')} onClick={() => setCategoryTab('all')}>
+          All <span className="opacity-60">{baseFiltered.length}</span>
+        </button>
+        {categories.map((c) => (
+          <button
+            key={c.id}
+            className={tabClass(categoryTab === String(c.id))}
+            onClick={() => setCategoryTab(String(c.id))}
+          >
+            {c.name} <span className="opacity-60">{tabCounts[c.id] || 0}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* Filters */}
+      <div className="flex flex-wrap items-center gap-3 mb-4">
         <input
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search by name or model number..."
-          className="w-full max-w-md px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          placeholder="Search name, model number or brand..."
+          className="w-full max-w-sm px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
+        <select
+          value={brandFilter}
+          onChange={(e) => setBrandFilter(e.target.value)}
+          className="px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white"
+        >
+          <option value="all">All brands</option>
+          {brands.map((b) => (
+            <option key={b.id} value={String(b.id)}>{b.name}</option>
+          ))}
+        </select>
+        <select
+          value={stockFilter}
+          onChange={(e) => setStockFilter(e.target.value)}
+          className="px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white"
+        >
+          {STOCK_FILTERS.map((f) => (
+            <option key={f.value} value={f.value}>{f.label}</option>
+          ))}
+        </select>
+        <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
+          <input type="checkbox" checked={showHidden} onChange={(e) => setShowHidden(e.target.checked)} />
+          Show hidden
+        </label>
+        {filtersOn && (
+          <button onClick={clearFilters} className="text-sm text-blue-600 hover:underline">
+            Clear filters
+          </button>
+        )}
       </div>
 
       {/* Table */}
@@ -289,65 +247,72 @@ export default function Inventory() {
               <div key={i} className="h-10 bg-slate-100 rounded animate-pulse" />
             ))}
           </div>
-        ) : products.length === 0 ? (
+        ) : visible.length === 0 ? (
           <div className="text-center py-12 text-slate-500">
             <p className="text-lg font-medium">No products found</p>
             <p className="text-sm mt-1">
-              {debouncedSearch ? 'Try a different search term.' : 'Click "Add Product" to get started.'}
+              {products.length === 0
+                ? 'Click "Add Product" or "Import spreadsheet" to get started.'
+                : 'Try a different search, tab or filter.'}
             </p>
           </div>
         ) : (
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200">
-                <th className="text-left px-4 py-3 font-semibold text-slate-600">Name</th>
-                <th className="text-left px-4 py-3 font-semibold text-slate-600">Brand ID</th>
-                <th className="text-left px-4 py-3 font-semibold text-slate-600">Category ID</th>
-                <th className="text-left px-4 py-3 font-semibold text-slate-600">Selling Price</th>
+                <th className="text-left px-4 py-3 font-semibold text-slate-600">Product</th>
+                <th className="text-left px-4 py-3 font-semibold text-slate-600">Brand</th>
+                <th className="text-left px-4 py-3 font-semibold text-slate-600">Category</th>
+                <th className="text-right px-4 py-3 font-semibold text-slate-600">Price</th>
                 <th className="text-left px-4 py-3 font-semibold text-slate-600">Stock</th>
                 <th className="text-right px-4 py-3 font-semibold text-slate-600">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {products.map((product) => {
-                const stockCount = inventoryMap[product.id] || 0;
+              {visible.map((product) => {
+                const hidden = product.is_active === false;
+                const specs = Object.values(product.specifications || {}).slice(0, 3).join(' · ');
                 return (
                   <tr
                     key={product.id}
-                    className={`hover:bg-slate-50 transition-colors ${
-                      !product.is_active ? 'opacity-40 pointer-events-none' : ''
-                    }`}
+                    onClick={() => setPanel({ product })}
+                    className={`cursor-pointer hover:bg-slate-50 transition-colors ${hidden ? 'opacity-50' : ''}`}
                   >
-                    <td className="px-4 py-3">
-                      <div className="font-medium text-slate-800">{product.name}</div>
-                      <div className="text-xs text-slate-400">{product.model_number}</div>
+                    <td className="px-4 py-3 max-w-xs">
+                      <div className="font-medium text-slate-800 truncate">
+                        {product.name}
+                        {hidden && <span className="ml-2 text-xs font-normal text-slate-500">(hidden)</span>}
+                      </div>
+                      <div className="text-xs text-slate-400 truncate">
+                        {product.model_number}
+                        {specs && <span className="text-slate-400"> · {specs}</span>}
+                      </div>
                     </td>
-                    <td className="px-4 py-3 text-slate-600">{product.brand_id}</td>
-                    <td className="px-4 py-3 text-slate-600">{product.category_id}</td>
-                    <td className="px-4 py-3 text-slate-600">${Number(product.selling_price).toFixed(2)}</td>
-                    <td className="px-4 py-3">
-                      <StatusBadge count={stockCount} />
+                    <td className="px-4 py-3 text-slate-600">{brandName[product.brand_id] || '—'}</td>
+                    <td className="px-4 py-3 text-slate-600">{categoryName[product.category_id] || '—'}</td>
+                    <td className="px-4 py-3 text-right text-slate-700 tabular-nums">
+                      {peso.format(Number(product.selling_price))}
                     </td>
-                    <td className="px-4 py-3 text-right">
+                    <td className="px-4 py-3">
+                      <StatusBadge count={stockOf(product)} />
+                    </td>
+                    <td className="px-4 py-3 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                       <button
-                        disabled
-                        className="px-3 py-1.5 text-xs font-medium text-slate-400 bg-slate-100 rounded mr-2 cursor-not-allowed"
-                        title="Edit coming in a later phase"
+                        onClick={() => setPanel({ product })}
+                        className="px-3 py-1.5 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded mr-2"
                       >
                         Edit
                       </button>
                       <button
-                        onClick={() => handleDelete(product.id)}
-                        disabled={deletingId === product.id || !product.is_active}
-                        className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
-                          !product.is_active
-                            ? 'text-slate-400 bg-slate-100 cursor-not-allowed'
-                            : deletingId === product.id
-                            ? 'text-red-400 bg-red-50 cursor-not-allowed'
+                        onClick={() => setVisibility(product, hidden)}
+                        disabled={busyId === product.id}
+                        className={`px-3 py-1.5 text-xs font-medium rounded transition-colors disabled:opacity-50 ${
+                          hidden
+                            ? 'text-emerald-700 bg-emerald-50 hover:bg-emerald-100'
                             : 'text-red-600 bg-red-50 hover:bg-red-100'
                         }`}
                       >
-                        {deletingId === product.id ? 'Deleting...' : product.is_active ? 'Delete' : 'Deleted'}
+                        {hidden ? 'Show' : 'Hide'}
                       </button>
                     </td>
                   </tr>
@@ -358,8 +323,17 @@ export default function Inventory() {
         )}
       </div>
 
-      {/* Add Product Modal */}
-      <AddProductModal open={showModal} onClose={() => setShowModal(false)} onCreated={fetchData} />
+      <ProductPanel
+        open={panel !== null}
+        product={panel?.product || null}
+        stock={panel?.product ? stockOf(panel.product) : 0}
+        brands={brands}
+        categories={categories}
+        onClose={() => setPanel(null)}
+        onSaved={fetchData}
+        onBrandCreated={(b) => setBrands((prev) => [...prev, b].sort((x, y) => x.name.localeCompare(y.name)))}
+        onCategoryCreated={(c) => setCategories((prev) => [...prev, c].sort((x, y) => x.name.localeCompare(y.name)))}
+      />
       <ImportProductsModal open={showImport} onClose={() => setShowImport(false)} onImported={fetchData} />
     </div>
   );
