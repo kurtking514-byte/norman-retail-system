@@ -20,6 +20,7 @@ class RepairRequest(Base):
     # Status allowed values: Pending, Diagnosis, In Progress, Ready for Pickup, Released, Cancelled
     status = Column(String(50), default="Pending", index=True)
     notes = Column(Text)
+    created_at = Column(DateTime, default=utcnow, nullable=True)
     updated_at = Column(DateTime, default=utcnow)
 
     customer = relationship("Customer")

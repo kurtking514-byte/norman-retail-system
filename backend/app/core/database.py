@@ -32,6 +32,12 @@ async def init_db() -> None:
             await conn.exec_driver_sql(
                 "ALTER TABLE repair_requests ADD COLUMN IF NOT EXISTS repair_type VARCHAR(100)"
             )
+            await conn.exec_driver_sql(
+                "ALTER TABLE repair_requests ADD COLUMN IF NOT EXISTS created_at TIMESTAMP"
+            )
+            await conn.exec_driver_sql(
+                "UPDATE repair_requests SET created_at = updated_at WHERE created_at IS NULL"
+            )
 
 
 async_session_factory = async_sessionmaker(

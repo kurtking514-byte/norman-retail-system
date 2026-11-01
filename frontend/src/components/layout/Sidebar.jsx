@@ -4,7 +4,7 @@ const navItems = [
   { label: 'Dashboard', path: '/dashboard', enabled: true },
   { label: 'Inventory', path: '/inventory', enabled: true },
   { label: 'Reservations', path: '/reservations', enabled: true },
-  { label: 'Repairs', path: '/repairs', enabled: true, badge: 'In development' },
+  { label: 'Repairs', path: '/repairs', enabled: true },
   { label: 'Live Chat', path: '/live-chat', enabled: true },
   { label: 'Settings', path: '#', enabled: false },
 ];

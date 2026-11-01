@@ -61,8 +61,8 @@ async def _resolve_customer(
     *phone_number*) are mutually exclusive — callers must validate that
     exactly one mode is used before calling this function.
 
-    Raises ``HTTPException(409)`` if *phone_number* already belongs to a
-    different customer.
+    A phone number that already belongs to a customer reuses that customer,
+    so a returning walk-in doesn't need to be looked up first.
     """
     if customer_id is not None:
         result = await db.execute(select(Customer).where(Customer.id == customer_id))
@@ -84,14 +84,10 @@ async def _resolve_customer(
         )
         existing = result.scalar_one_or_none()
         if existing is not None:
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail=_build_error(
-                    "DUPLICATE_PHONE_NUMBER",
-                    f"A customer with phone number '{phone_number}' already exists "
-                    f"(id={existing.id}). Use that customer_id instead.",
-                ),
-            )
+            if not (existing.first_name or existing.last_name):
+                existing.first_name, existing.last_name = first_name, last_name
+                await db.commit()
+            return existing
 
     customer = Customer(
         first_name=first_name,
@@ -107,6 +103,7 @@ async def _resolve_customer(
 def _to_response(repair: RepairRequest, customer: Customer | None) -> RepairRequestResponse:
     response = RepairRequestResponse.model_validate(repair)
     response.customer_name = customer_display_name(customer) if customer else None
+    response.customer_phone = customer.phone_number if customer else None
     return response
 
 
@@ -166,6 +163,7 @@ async def create_repair(
         estimated_cost=body.estimated_cost,
         status="Pending",
         notes=body.notes,
+        created_at=now,
         updated_at=now,
     )
     db.add(repair)

@@ -83,10 +83,12 @@ class RepairRequestResponse(BaseModel):
     id: int
     customer_id: int
     customer_name: Optional[str] = None
+    customer_phone: Optional[str] = None
     device_model: str
     repair_type: Optional[str] = None
     issue_description: str
     estimated_cost: float
     status: str
     notes: Optional[str] = None
+    created_at: Optional[datetime] = None
     updated_at: datetime

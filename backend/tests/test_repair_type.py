@@ -73,3 +73,19 @@ async def test_customer_search_and_names_on_repairs(client):
     listed = (await client.get("/api/v1/repairs")).json()
     mine = next(r for r in listed if r["id"] == created.json()["id"])
     assert mine["customer_name"] == "Marisol Dizon"
+
+
+async def test_returning_phone_reuses_customer_and_dates_are_set(client):
+    phone = "+63-917-555-0388"
+    first = await client.post("/api/v1/repairs", json={
+        "first_name": "Lito", "last_name": "Ramos", "phone_number": phone,
+        "device_model": "Redmi 13C", "repair_type": "Battery replacement",
+    })
+    again = await client.post("/api/v1/repairs", json={
+        "first_name": "Lito", "last_name": "Ramos", "phone_number": phone,
+        "device_model": "Redmi 13C", "repair_type": "Charging port",
+    })
+    assert (first.status_code, again.status_code) == (201, 201), again.text
+    assert again.json()["customer_id"] == first.json()["customer_id"]
+    assert again.json()["customer_phone"] == phone
+    assert again.json()["created_at"] is not None

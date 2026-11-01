@@ -1,7 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import api from '../services/api';
+import { parseServerDate } from '../utils/dates';
 
-// What staff can pick in "What needs fixing"
+// What staff can tap in "What needs fixing" (more than one can be picked)
 const REPAIR_TYPES = [
   'Screen replacement',
   'Battery replacement',
@@ -43,6 +44,43 @@ const STATUS_LABELS = {
   Cancelled: 'Cancelled',
 };
 
+// The one-click "next step" for each status
+const NEXT_STEP = {
+  Pending: { label: 'Start repair', status: 'In Progress' },
+  Diagnosis: { label: 'Start repair', status: 'In Progress' },
+  'In Progress': { label: 'Mark done', status: 'Ready for Pickup' },
+  'Ready for Pickup': { label: 'Picked up', status: 'Released' },
+};
+
+const inputClass =
+  'w-full px-3 py-2 border border-stone-300 rounded-md text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500';
+
+// Still in the shop: not yet released to the customer or cancelled
+const isActive = (r) => !['Released', 'Completed', 'Cancelled'].includes(r.status);
+
+const jobNumber = (id) => `#${String(id).padStart(4, '0')}`;
+
+function errorMessage(err, fallback) {
+  const data = err.response?.data;
+  if (data?.detail?.error?.message) return data.detail.error.message;
+  if (data?.error?.message) return data.error.message;
+  if (Array.isArray(data?.detail) && data.detail[0]?.msg) return data.detail[0].msg.replace(/^Value error, /, '');
+  return fallback;
+}
+
+function receivedLabel(value) {
+  const date = parseServerDate(value);
+  if (Number.isNaN(date.getTime())) return '—';
+  const today = new Date();
+  if (date.toDateString() === today.toDateString()) {
+    return `Today ${date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`;
+  }
+  const yesterday = new Date(today);
+  yesterday.setDate(today.getDate() - 1);
+  if (date.toDateString() === yesterday.toDateString()) return 'Yesterday';
+  return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+}
+
 function RepairStatusBadge({ status }) {
   const stage = stageOf(status);
   return (
@@ -54,328 +92,224 @@ function RepairStatusBadge({ status }) {
 }
 
 // ---------------------------------------------------------------------------
-// Customer search — type a name or phone number, pick from the matches
+// Customer name field — suggests existing customers while typing; anything
+// not picked from the list is saved as a new customer.
 // ---------------------------------------------------------------------------
-function CustomerPicker({ value, onChange }) {
-  const [query, setQuery] = useState('');
-  const [results, setResults] = useState([]);
-  const [searching, setSearching] = useState(false);
+function CustomerNameField({ inputRef, name, customerId, onType, onPick }) {
+  const [matches, setMatches] = useState([]);
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    if (value) return undefined;
+    const term = name.trim();
+    if (customerId || term.length < 2) {
+      setMatches([]);
+      return undefined;
+    }
     const timer = setTimeout(async () => {
-      setSearching(true);
       try {
-        const res = await api.get('/customers', { params: { q: query, limit: 8 } });
-        setResults(res.data);
+        const res = await api.get('/customers', { params: { q: term, limit: 6 } });
+        setMatches(res.data);
       } catch {
-        setResults([]);
-      } finally {
-        setSearching(false);
+        setMatches([]);
       }
-    }, 250);
+    }, 200);
     return () => clearTimeout(timer);
-  }, [query, value]);
-
-  if (value) {
-    return (
-      <div className="flex items-center justify-between px-3 py-2 border border-brand-300 bg-brand-50 rounded-lg text-sm">
-        <div>
-          <div className="font-medium text-stone-800">{value.name || 'No name'}</div>
-          <div className="text-xs text-stone-500">{value.phone_number}</div>
-        </div>
-        <button type="button" onClick={() => onChange(null)} className="text-xs font-medium text-brand-600 hover:underline">
-          Change
-        </button>
-      </div>
-    );
-  }
+  }, [name, customerId]);
 
   return (
-    <div>
+    <div className="relative">
       <input
-        autoFocus
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        placeholder="Search by name or phone number"
-        className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+        ref={inputRef}
+        value={name}
+        onChange={(e) => {
+          onType(e.target.value);
+          setOpen(true);
+        }}
+        onFocus={() => setOpen(true)}
+        onBlur={() => setTimeout(() => setOpen(false), 150)}
+        placeholder="Name"
+        autoComplete="off"
+        className={inputClass}
       />
-      <div className="mt-1 max-h-48 overflow-y-auto rounded-lg border border-stone-200 divide-y divide-stone-100">
-        {results.map((c) => (
-          <button
-            key={c.id}
-            type="button"
-            onClick={() => onChange(c)}
-            className="w-full text-left px-3 py-2 hover:bg-stone-50"
-          >
-            <div className="text-sm font-medium text-stone-800">{c.name || 'No name'}</div>
-            <div className="text-xs text-stone-500">{c.phone_number}</div>
-          </button>
-        ))}
-        {!searching && results.length === 0 && (
-          <p className="px-3 py-2 text-xs text-stone-400">
-            No customer found. Choose "New Customer" to add them.
-          </p>
-        )}
-      </div>
+      {open && matches.length > 0 && (
+        <div className="absolute z-20 mt-1 w-full rounded-md border border-stone-200 bg-white shadow-lg divide-y divide-stone-100">
+          <p className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-stone-400">Returning customer?</p>
+          {matches.map((c) => (
+            <button
+              key={c.id}
+              type="button"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => {
+                onPick(c);
+                setOpen(false);
+              }}
+              className="w-full text-left px-3 py-2 hover:bg-stone-50"
+            >
+              <span className="text-sm font-medium text-stone-800">{c.name || 'No name'}</span>
+              <span className="ml-2 text-xs text-stone-500">{c.phone_number}</span>
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
 
 // ---------------------------------------------------------------------------
-// New Repair Request Modal
+// Quick add — always on the page; saves with Enter and clears for the next one
 // ---------------------------------------------------------------------------
-const emptyForm = {
-  customerMode: 'existing',
-  customer: null,
-  first_name: '',
-  last_name: '',
-  phone_number: '',
-  device_model: '',
-  repair_type: '',
-  issue_description: '',
-  estimated_cost: '',
+const emptyIntake = {
+  name: '',
+  phone: '',
+  customerId: null,
+  device: '',
+  types: [],
+  details: '',
+  cost: '',
 };
 
-function NewRepairModal({ open, onClose, onCreated }) {
-  const [form, setForm] = useState(emptyForm);
+function QuickAddRepair({ deviceSuggestions, onCreated }) {
+  const [form, setForm] = useState(emptyIntake);
   const [error, setError] = useState('');
-  const [submitting, setSubmitting] = useState(false);
+  const [saved, setSaved] = useState('');
+  const [saving, setSaving] = useState(false);
+  const nameRef = useRef(null);
 
-  useEffect(() => {
-    if (open) {
-      setForm(emptyForm);
-      setError('');
-      setSubmitting(false);
-    }
-  }, [open]);
+  const set = (field) => (e) => setForm((f) => ({ ...f, [field]: e.target.value }));
+  const toggleType = (type) =>
+    setForm((f) => ({
+      ...f,
+      types: f.types.includes(type) ? f.types.filter((t) => t !== type) : [...f.types, type],
+    }));
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = async (e) => {
+  const submit = async (e) => {
     e.preventDefault();
     setError('');
+    setSaved('');
 
-    if (!form.device_model) {
-      setError('Please fill in the device model.');
-      return;
-    }
-    if (!form.repair_type && !form.issue_description.trim()) {
-      setError('Choose what needs fixing or describe the issue.');
-      return;
-    }
+    if (!form.device.trim()) return setError('Enter the phone model.');
+    if (form.types.length === 0 && !form.details.trim()) return setError('Tap what needs fixing or write the problem.');
+    if (!form.customerId && !form.phone.trim()) return setError("Add the customer's phone number so you can call them when it's ready.");
 
     const body = {
-      device_model: form.device_model,
-      repair_type: form.repair_type || null,
-      issue_description: form.issue_description,
-      estimated_cost: parseFloat(form.estimated_cost) || 0,
+      device_model: form.device.trim(),
+      repair_type: form.types.join(', ') || null,
+      issue_description: form.details.trim(),
+      estimated_cost: parseFloat(form.cost) || 0,
     };
-
-    if (form.customerMode === 'existing') {
-      if (!form.customer) {
-        setError('Please pick a customer.');
-        return;
-      }
-      body.customer_id = form.customer.id;
+    if (form.customerId) {
+      body.customer_id = form.customerId;
     } else {
-      if (!form.first_name || !form.last_name || !form.phone_number) {
-        setError('Please fill in all customer fields.');
-        return;
-      }
-      body.first_name = form.first_name;
-      body.last_name = form.last_name;
-      body.phone_number = form.phone_number;
+      const parts = form.name.trim().split(/\s+/).filter(Boolean);
+      body.first_name = parts.length > 1 ? parts.slice(0, -1).join(' ') : parts[0] || null;
+      body.last_name = parts.length > 1 ? parts[parts.length - 1] : null;
+      body.phone_number = form.phone.trim();
     }
 
-    setSubmitting(true);
+    setSaving(true);
     try {
-      await api.post('/repairs', body);
-      setForm(emptyForm);
+      const res = await api.post('/repairs', body);
+      const r = res.data;
+      setSaved(`${jobNumber(r.id)} added — ${r.customer_name || 'customer'}, ${r.device_model}`);
+      setForm(emptyIntake);
       onCreated();
-      onClose();
+      nameRef.current?.focus();
     } catch (err) {
-      const data = err.response?.data;
-      let msg = 'Failed to create repair request. Please try again.';
-      if (data?.detail?.error?.message) {
-        msg = data.detail.error.message;
-      } else if (data?.error?.message) {
-        msg = data.error.message;
-      } else if (data?.detail) {
-        msg = typeof data.detail === 'string' ? data.detail : JSON.stringify(data.detail);
-      }
-      setError(msg);
+      setError(errorMessage(err, 'Could not add the repair. Please try again.'));
     } finally {
-      setSubmitting(false);
+      setSaving(false);
     }
   };
 
-  if (!open) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="bg-white rounded-lg shadow-2xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
-        <div className="px-6 py-4 border-b border-stone-200 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-stone-800">New Repair Request</h2>
-          <button onClick={onClose} className="text-stone-400 hover:text-stone-600 text-xl leading-none">&times;</button>
+    <form onSubmit={submit} className="mb-6 bg-white rounded-lg border border-stone-200 shadow-sm">
+      <div className="px-5 py-3 border-b border-stone-200 flex items-center justify-between gap-3">
+        <h2 className="font-display text-lg font-bold uppercase tracking-wide text-stone-800">New repair</h2>
+        {saved && <span className="text-sm font-medium text-terrace-700">✓ {saved}</span>}
+      </div>
+
+      <div className="p-5 space-y-4">
+        {error && (
+          <div className="px-3 py-2 bg-brand-50 border border-brand-200 text-brand-800 text-sm rounded-md">{error}</div>
+        )}
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3">
+          <label className="lg:col-span-3">
+            <span className="block text-xs font-semibold text-stone-600 mb-1">Customer</span>
+            <CustomerNameField
+              inputRef={nameRef}
+              name={form.name}
+              customerId={form.customerId}
+              onType={(name) => setForm((f) => ({ ...f, name, customerId: null }))}
+              onPick={(c) => setForm((f) => ({ ...f, name: c.name || '', phone: c.phone_number, customerId: c.id }))}
+            />
+          </label>
+          <label className="lg:col-span-3">
+            <span className="block text-xs font-semibold text-stone-600 mb-1">
+              Phone number {form.customerId && <span className="font-normal text-terrace-700">· returning customer</span>}
+            </span>
+            <input
+              value={form.phone}
+              onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value, customerId: null }))}
+              placeholder="09xx xxx xxxx"
+              inputMode="tel"
+              className={inputClass}
+            />
+          </label>
+          <label className="lg:col-span-4">
+            <span className="block text-xs font-semibold text-stone-600 mb-1">Phone model</span>
+            <input value={form.device} onChange={set('device')} list="repair-devices"
+              placeholder="e.g. Redmi Note 13" autoComplete="off" className={inputClass} />
+            <datalist id="repair-devices">
+              {deviceSuggestions.map((d) => <option key={d} value={d} />)}
+            </datalist>
+          </label>
+          <label className="lg:col-span-2">
+            <span className="block text-xs font-semibold text-stone-600 mb-1">Est. cost (₱)</span>
+            <input type="number" min="0" step="0.01" value={form.cost} onChange={set('cost')}
+              placeholder="0" className={inputClass} />
+          </label>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          {error && (
-            <div className="px-4 py-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg">
-              {error}
-            </div>
-          )}
-
-          {/* Device info */}
-          <div>
-            <label className="block text-sm font-medium text-stone-700 mb-1">Device Model *</label>
-            <input
-              name="device_model"
-              value={form.device_model}
-              onChange={handleChange}
-              placeholder="e.g. iPhone 15 Pro Max"
-              className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
-            />
+        <div>
+          <span className="block text-xs font-semibold text-stone-600 mb-1.5">What needs fixing</span>
+          <div className="flex flex-wrap gap-2">
+            {REPAIR_TYPES.map((type) => {
+              const on = form.types.includes(type);
+              return (
+                <button
+                  key={type}
+                  type="button"
+                  onClick={() => toggleType(type)}
+                  aria-pressed={on}
+                  className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
+                    on
+                      ? 'bg-ink-900 text-white border-ink-900'
+                      : 'bg-white text-stone-700 border-stone-300 hover:border-stone-400'
+                  }`}
+                >
+                  {on && '✓ '}
+                  {type}
+                </button>
+              );
+            })}
           </div>
+        </div>
 
-          <div>
-            <label className="block text-sm font-medium text-stone-700 mb-1">What needs fixing *</label>
-            <select
-              name="repair_type"
-              value={form.repair_type}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand-500"
-            >
-              <option value="">Choose…</option>
-              {REPAIR_TYPES.map((t) => (
-                <option key={t} value={t}>{t}</option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-stone-700 mb-1">
-              Details {form.repair_type ? <span className="font-normal text-stone-400">(optional)</span> : '*'}
-            </label>
-            <textarea
-              name="issue_description"
-              rows="3"
-              value={form.issue_description}
-              onChange={handleChange}
-              placeholder={form.repair_type === 'Other' ? 'Describe the problem...' : 'Anything else the technician should know...'}
-              className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-stone-700 mb-1">Estimated Cost</label>
-            <div className="relative">
-              <span className="absolute left-3 top-2.5 text-stone-500 text-sm">₱</span>
-              <input
-                name="estimated_cost"
-                type="number"
-                step="0.01"
-                min="0"
-                value={form.estimated_cost}
-                onChange={handleChange}
-                placeholder="0.00"
-                className="w-full pl-8 pr-3 py-2 border border-stone-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
-              />
-            </div>
-          </div>
-
-          {/* Customer mode toggle */}
-          <div>
-            <label className="block text-sm font-medium text-stone-700 mb-2">Customer</label>
-            <div className="flex gap-4 mb-3">
-              <label className="flex items-center gap-2 text-sm">
-                <input
-                  type="radio"
-                  name="customerMode"
-                  value="existing"
-                  checked={form.customerMode === 'existing'}
-                  onChange={handleChange}
-                  className="text-brand-600"
-                />
-                Existing Customer
-              </label>
-              <label className="flex items-center gap-2 text-sm">
-                <input
-                  type="radio"
-                  name="customerMode"
-                  value="new"
-                  checked={form.customerMode === 'new'}
-                  onChange={handleChange}
-                  className="text-brand-600"
-                />
-                New Customer
-              </label>
-            </div>
-
-            {form.customerMode === 'existing' ? (
-              <CustomerPicker
-                value={form.customer}
-                onChange={(customer) => setForm((prev) => ({ ...prev, customer }))}
-              />
-            ) : (
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-sm font-medium text-stone-700 mb-1">First Name *</label>
-                  <input
-                    name="first_name"
-                    value={form.first_name}
-                    onChange={handleChange}
-                    className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-stone-700 mb-1">Last Name *</label>
-                  <input
-                    name="last_name"
-                    value={form.last_name}
-                    onChange={handleChange}
-                    className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
-                  />
-                </div>
-                <div className="col-span-2">
-                  <label className="block text-sm font-medium text-stone-700 mb-1">Phone Number *</label>
-                  <input
-                    name="phone_number"
-                    value={form.phone_number}
-                    onChange={handleChange}
-                    placeholder="+63-xxx-xxx-xxxx"
-                    className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
-                  />
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div className="flex justify-end gap-3 pt-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-stone-700 bg-stone-100 hover:bg-stone-200 rounded-lg transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={submitting}
-              className={`px-4 py-2 text-sm font-semibold text-white rounded-lg transition-colors ${
-                submitting ? 'bg-brand-400 cursor-not-allowed' : 'bg-brand-600 hover:bg-brand-700'
-              }`}
-            >
-              {submitting ? 'Creating...' : 'Create Repair Request'}
-            </button>
-          </div>
-        </form>
+        <div className="flex flex-col sm:flex-row gap-3">
+          <input value={form.details} onChange={set('details')}
+            placeholder="Notes for the technician (optional) — e.g. cracked at the top corner, passcode 1234"
+            className={`${inputClass} flex-1`} />
+          <button
+            type="submit"
+            disabled={saving}
+            className="px-6 py-2 text-sm font-semibold text-white bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 rounded-md transition-colors whitespace-nowrap"
+          >
+            {saving ? 'Adding…' : 'Add repair'}
+          </button>
+        </div>
       </div>
-    </div>
+    </form>
   );
 }
 
@@ -427,7 +361,7 @@ function InlineCost({ value, onSave }) {
   return (
     <button
       onClick={() => setEditing(true)}
-      className="text-sm text-stone-700 hover:text-brand-600 hover:underline cursor-pointer text-left"
+      className="text-sm text-stone-700 hover:text-brand-600 hover:underline cursor-pointer text-left tabular-nums"
       title="Click to edit"
     >
       {peso.format(Number(value))}
@@ -436,64 +370,40 @@ function InlineCost({ value, onSave }) {
 }
 
 // ---------------------------------------------------------------------------
-// Status update dropdown (used in table)
+// Status: one-click next step plus a menu for anything else
 // ---------------------------------------------------------------------------
 const repairStatusFlow = ['Pending', 'Diagnosis', 'In Progress', 'Ready for Pickup', 'Released'];
 
-function RepairStatusDropdown({ currentStatus, onChange }) {
-  const currentIdx = repairStatusFlow.indexOf(currentStatus);
+function StatusActions({ currentStatus, onChange }) {
   if (currentStatus === 'Released' || currentStatus === 'Cancelled') return null;
-
-  const options = [];
-  // Forward options
-  for (let i = currentIdx + 1; i < repairStatusFlow.length; i++) {
-    options.push(repairStatusFlow[i]);
-  }
-  // Cancel is available at any point (unless already cancelled or released)
-  if (currentStatus !== 'Cancelled') {
-    options.push('Cancelled');
-  }
-
-  const handleChange = (e) => {
-    const newStatus = e.target.value;
-    if (!newStatus) return;
-    onChange(newStatus);
-  };
+  const next = NEXT_STEP[currentStatus];
+  const currentIdx = repairStatusFlow.indexOf(currentStatus);
+  const others = [
+    ...repairStatusFlow.slice(currentIdx + 1).filter((s) => s !== next?.status),
+    'Cancelled',
+  ];
 
   return (
-    <select
-      onChange={handleChange}
-      defaultValue=""
-      className="px-2 py-1 text-xs border border-stone-300 rounded-md focus:outline-none focus:ring-1 focus:ring-brand-500 bg-white"
-    >
-      <option value="" disabled>
-        Change status...
-      </option>
-      {options.map((s) => (
-        <option key={s} value={s}>
-          {STATUS_LABELS[s] || s}
-        </option>
-      ))}
-    </select>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Issue Cell — truncates long text, full text on click
-// ---------------------------------------------------------------------------
-function IssueCell({ text }) {
-  const [expanded, setExpanded] = useState(false);
-  const truncated = text && text.length > 60 ? text.slice(0, 60) + '...' : text;
-
-  return (
-    <div className="relative">
-      <span
-        className="text-stone-600 cursor-pointer hover:text-brand-600"
-        onClick={() => setExpanded(!expanded)}
-        title={expanded ? 'Click to collapse' : 'Click to view full text'}
+    <div className="flex items-center justify-end gap-2">
+      {next && (
+        <button
+          onClick={() => onChange(next.status)}
+          className="px-3 py-1 text-xs font-semibold text-white bg-ink-800 hover:bg-ink-900 rounded-md whitespace-nowrap"
+        >
+          {next.label}
+        </button>
+      )}
+      <select
+        value=""
+        onChange={(e) => e.target.value && onChange(e.target.value)}
+        aria-label="Other status"
+        className="w-20 px-2 py-1 text-xs border border-stone-300 rounded-md bg-white text-stone-600 focus:outline-none focus:ring-1 focus:ring-brand-500"
       >
-        {expanded ? text : truncated}
-      </span>
+        <option value="" disabled>More…</option>
+        {others.map((s) => (
+          <option key={s} value={s}>{STATUS_LABELS[s] || s}</option>
+        ))}
+      </select>
     </div>
   );
 }
@@ -505,11 +415,10 @@ export default function Repairs() {
   const [repairs, setRepairs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [stageFilter, setStageFilter] = useState('all');
-  const [showModal, setShowModal] = useState(false);
+  const [stageFilter, setStageFilter] = useState('active');
+  const [search, setSearch] = useState('');
 
   const fetchData = useCallback(async () => {
-    setLoading(true);
     setError('');
     try {
       const res = await api.get('/repairs');
@@ -521,101 +430,94 @@ export default function Repairs() {
     }
   }, []);
 
-  const stageCounts = repairs.reduce((counts, r) => {
-    const key = stageOf(r.status).key;
-    counts[key] = (counts[key] || 0) + 1;
-    return counts;
-  }, {});
-  const visible = stageFilter === 'all' ? repairs : repairs.filter((r) => stageOf(r.status).key === stageFilter);
-
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
-  const handleStatusChange = async (repairId, newStatus) => {
+  const updateRepair = async (repairId, changes, failMessage) => {
     try {
-      await api.put(`/repairs/${repairId}`, { status: newStatus });
-      fetchData();
+      const res = await api.put(`/repairs/${repairId}`, changes);
+      setRepairs((prev) => prev.map((r) => (r.id === repairId ? res.data : r)));
     } catch (err) {
-      const data = err.response?.data;
-      let msg = 'Failed to update repair status.';
-      if (data?.detail?.error?.message) msg = data.detail.error.message;
-      else if (data?.error?.message) msg = data.error.message;
-      setError(msg);
+      setError(errorMessage(err, failMessage));
     }
   };
 
-  const handleCostSave = async (repairId, newCost) => {
-    try {
-      await api.put(`/repairs/${repairId}`, { estimated_cost: newCost });
-      fetchData();
-    } catch (err) {
-      const data = err.response?.data;
-      let msg = 'Failed to update cost.';
-      if (data?.detail?.error?.message) msg = data.detail.error.message;
-      else if (data?.error?.message) msg = data.error.message;
-      setError(msg);
-    }
-  };
+  const deviceSuggestions = useMemo(
+    () => [...new Set(repairs.map((r) => r.device_model).filter(Boolean))].sort(),
+    [repairs],
+  );
+
+  const searched = useMemo(() => {
+    const q = search.trim().toLowerCase().replace(/^#0*/, '');
+    if (!q) return repairs;
+    return repairs.filter((r) =>
+      [r.customer_name, r.customer_phone, r.device_model, r.repair_type, r.issue_description, String(r.id)]
+        .some((v) => (v || '').toLowerCase().includes(q)),
+    );
+  }, [repairs, search]);
+
+  const stageCounts = searched.reduce((counts, r) => {
+    const key = stageOf(r.status).key;
+    counts[key] = (counts[key] || 0) + 1;
+    return counts;
+  }, {});
+  const activeCount = searched.filter(isActive).length;
+
+  const visible = searched.filter((r) => {
+    if (stageFilter === 'all') return true;
+    if (stageFilter === 'active') return isActive(r);
+    return stageOf(r.status).key === stageFilter;
+  });
+
+  const chipClass = (active) =>
+    `inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
+      active ? 'bg-ink-900 text-white border-ink-900' : 'bg-white text-stone-600 border-stone-200 hover:bg-stone-50'
+    }`;
 
   return (
     <div>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-stone-800">Repairs</h1>
-          <p className="text-sm text-stone-500 mt-0.5">
-            {loading ? 'Loading...' : `${repairs.length} repair${repairs.length !== 1 ? 's' : ''}`}
-          </p>
-        </div>
-        <button
-          onClick={() => setShowModal(true)}
-          className="px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-lg transition-colors shadow-sm"
-        >
-          + New Repair Request
-        </button>
+      <div className="mb-5">
+        <h1 className="text-2xl text-stone-800">Repairs</h1>
+        <p className="text-sm text-stone-500 mt-0.5">
+          {loading ? 'Loading...' : `${activeCount} in the shop · ${repairs.length} total`}
+        </p>
       </div>
 
-      {/* In-development notice */}
-      <div className="mb-4 px-4 py-3 bg-amber-50 border border-amber-200 text-amber-800 text-sm rounded-lg">
-        <span className="font-semibold">In development:</span> repair tracking works, but
-        photo-based damage assessment and AI repair quotes are still being built.
-      </div>
+      <QuickAddRepair deviceSuggestions={deviceSuggestions} onCreated={fetchData} />
 
-      {/* Error banner */}
       {error && (
-        <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg flex items-center justify-between">
+        <div className="mb-4 px-4 py-3 bg-brand-50 border border-brand-200 text-brand-800 text-sm rounded-lg flex items-center justify-between">
           <span>{error}</span>
-          <button onClick={() => setError('')} className="text-red-500 hover:text-red-700 ml-2">&times;</button>
+          <button onClick={() => setError('')} className="text-brand-500 hover:text-brand-700 ml-2">&times;</button>
         </div>
       )}
 
-      {/* Stage filter (doubles as the color legend) */}
-      <div className="mb-4 flex flex-wrap gap-2">
-        <button
-          onClick={() => setStageFilter('all')}
-          className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
-            stageFilter === 'all' ? 'bg-stone-800 text-white border-stone-800' : 'bg-white text-stone-600 border-stone-200 hover:bg-stone-50'
-          }`}
-        >
-          All <span className="opacity-60">{repairs.length}</span>
+      {/* Search and stage filter (the chips double as the color legend) */}
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        <input
+          type="search"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search name, phone, model or job #"
+          className="w-full sm:w-72 px-3 py-2 border border-stone-300 rounded-md text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500"
+        />
+        <button onClick={() => setStageFilter('active')} className={chipClass(stageFilter === 'active')}>
+          In the shop <span className="opacity-60">{activeCount}</span>
         </button>
         {STAGES.map((stage) => (
-          <button
-            key={stage.key}
-            onClick={() => setStageFilter(stage.key)}
-            className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
-              stageFilter === stage.key ? `${stage.badge} border-transparent ring-2 ring-offset-1 ring-stone-300` : 'bg-white text-stone-600 border-stone-200 hover:bg-stone-50'
-            }`}
-          >
+          <button key={stage.key} onClick={() => setStageFilter(stage.key)} className={chipClass(stageFilter === stage.key)}>
             <span className={`h-2 w-2 rounded-full ${stage.dot}`} />
             {stage.label} <span className="opacity-60">{stageCounts[stage.key] || 0}</span>
           </button>
         ))}
+        <button onClick={() => setStageFilter('all')} className={chipClass(stageFilter === 'all')}>
+          All <span className="opacity-60">{searched.length}</span>
+        </button>
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-lg border border-stone-200 overflow-hidden shadow-sm">
+      <div className="bg-white rounded-lg border border-stone-200 overflow-x-auto shadow-sm">
         {loading ? (
           <div className="p-8 space-y-4">
             {[1, 2, 3].map((i) => (
@@ -624,37 +526,39 @@ export default function Repairs() {
           </div>
         ) : visible.length === 0 ? (
           <div className="text-center py-12 text-stone-500">
-            <p className="text-lg font-medium">No repair requests found</p>
+            <p className="text-lg font-medium">No repairs here</p>
             <p className="text-sm mt-1">
-              {repairs.length ? 'Nothing in this stage right now.' : 'Click "New Repair Request" to create one.'}
+              {search ? 'Nothing matches that search.' : repairs.length ? 'Nothing in this stage right now.' : 'Add the first one with the form above.'}
             </p>
           </div>
         ) : (
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-stone-50 border-b border-stone-200">
-                <th className="text-left px-4 py-3 font-semibold text-stone-600">Customer</th>
-                <th className="text-left px-4 py-3 font-semibold text-stone-600">Device Model</th>
-                <th className="text-left px-4 py-3 font-semibold text-stone-600">Repair</th>
-                <th className="text-left px-4 py-3 font-semibold text-stone-600">Status</th>
-                <th className="text-left px-4 py-3 font-semibold text-stone-600">Est. Cost</th>
-                <th className="text-right px-4 py-3 font-semibold text-stone-600">Actions</th>
+              <tr className="bg-stone-50 border-b border-stone-200 text-left">
+                <th className="px-4 py-3 font-semibold text-stone-600">Job</th>
+                <th className="px-4 py-3 font-semibold text-stone-600">Customer</th>
+                <th className="px-4 py-3 font-semibold text-stone-600">Phone model</th>
+                <th className="px-4 py-3 font-semibold text-stone-600">Repair</th>
+                <th className="px-4 py-3 font-semibold text-stone-600">Status</th>
+                <th className="px-4 py-3 font-semibold text-stone-600">Est. cost</th>
+                <th className="px-4 py-3 font-semibold text-stone-600 text-right">Update</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100">
               {visible.map((repair) => (
-                <tr key={repair.id} className="hover:bg-stone-50 transition-colors">
-                  <td className={`px-4 py-3 border-l-4 ${stageOf(repair.status).bar}`}>
-                    <span className="font-medium text-stone-800">
-                      {repair.customer_name || `Customer #${repair.customer_id}`}
-                    </span>
+                <tr key={repair.id} className="hover:bg-stone-50 transition-colors align-top">
+                  <td className={`px-4 py-3 border-l-4 ${stageOf(repair.status).bar} whitespace-nowrap`}>
+                    <div className="font-semibold text-stone-800 tabular-nums">{jobNumber(repair.id)}</div>
+                    <div className="text-xs text-stone-500">{receivedLabel(repair.created_at || repair.updated_at)}</div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="font-medium text-stone-800">{repair.customer_name || `Customer #${repair.customer_id}`}</div>
+                    {repair.customer_phone && <div className="text-xs text-stone-500 whitespace-nowrap">{repair.customer_phone}</div>}
                   </td>
                   <td className="px-4 py-3 text-stone-700 font-medium">{repair.device_model}</td>
-                  <td className="px-4 py-3 max-w-[260px]">
-                    {repair.repair_type && (
-                      <div className="font-medium text-stone-800">{repair.repair_type}</div>
-                    )}
-                    {repair.issue_description && <IssueCell text={repair.issue_description} />}
+                  <td className="px-4 py-3 max-w-[280px]">
+                    {repair.repair_type && <div className="font-medium text-stone-800">{repair.repair_type}</div>}
+                    {repair.issue_description && <div className="text-stone-500 break-words">{repair.issue_description}</div>}
                   </td>
                   <td className="px-4 py-3">
                     <RepairStatusBadge status={repair.status} />
@@ -662,13 +566,13 @@ export default function Repairs() {
                   <td className="px-4 py-3">
                     <InlineCost
                       value={repair.estimated_cost || 0}
-                      onSave={(newCost) => handleCostSave(repair.id, newCost)}
+                      onSave={(cost) => updateRepair(repair.id, { estimated_cost: cost }, 'Failed to update cost.')}
                     />
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <RepairStatusDropdown
+                    <StatusActions
                       currentStatus={repair.status}
-                      onChange={(newStatus) => handleStatusChange(repair.id, newStatus)}
+                      onChange={(status) => updateRepair(repair.id, { status }, 'Failed to update repair status.')}
                     />
                   </td>
                 </tr>
@@ -677,13 +581,6 @@ export default function Repairs() {
           </table>
         )}
       </div>
-
-      {/* New Repair Modal */}
-      <NewRepairModal
-        open={showModal}
-        onClose={() => setShowModal(false)}
-        onCreated={fetchData}
-      />
     </div>
   );
 }
