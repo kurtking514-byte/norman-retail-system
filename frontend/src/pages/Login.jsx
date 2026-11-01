@@ -47,11 +47,9 @@ export default function Login() {
     <div className="min-h-screen bg-stone-100 flex flex-col">
       <ShopBanner tagline="Retailer of authentic mobile phones and accessories" />
       <div className="flex-1 flex items-start sm:items-center justify-center px-4 py-10">
-        <div className="w-full max-w-md bg-white rounded-lg border border-stone-200 shadow-xl overflow-hidden">
-          <div className="weave h-1.5" />
-          <div className="p-6 sm:p-10">
-            <h1 className="text-3xl text-stone-900">Staff sign in</h1>
-            <p className="mt-1 mb-6 text-sm text-stone-500">Inventory, reservations, repairs and customer chats.</p>
+        <div className="w-full max-w-sm bg-white rounded-lg border border-stone-200 shadow-sm">
+          <div className="p-6 sm:p-8">
+            <h1 className="mb-5 text-2xl text-stone-900">Staff sign in</h1>
 
             {error && (
               <div className="mb-4 px-4 py-3 bg-brand-50 border border-brand-200 text-brand-800 text-sm rounded-md">
