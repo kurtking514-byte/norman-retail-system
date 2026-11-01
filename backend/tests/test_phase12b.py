@@ -48,6 +48,7 @@ from app.core.config import settings  # noqa: E402
 from app.core.database import async_session_factory  # noqa: E402
 from app.models.customer import Customer  # noqa: E402
 from app.models.notification import ConversationLog, NotificationQueue  # noqa: E402
+from app.core.clock import utcnow  # noqa: E402
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -260,7 +261,7 @@ async def test_auto_resume_after_12_hours_on_incoming_message(
     auto-resumes to AI_CONTROLLED on the next incoming message, and the bot
     actually replies (not skipped)."""
     # Arrange: seed customer HUMAN_CONTROLLED with timestamp > 12 hours ago
-    old_time = datetime.now() - timedelta(hours=IDLE_TIMEOUT_HOURS + 1)
+    old_time = utcnow() - timedelta(hours=IDLE_TIMEOUT_HOURS + 1)
     await _seed_customer(
         SENDER_ID_A,
         thread_state="HUMAN_CONTROLLED",
@@ -337,7 +338,7 @@ async def test_no_auto_resume_before_12_hours(
     """A HUMAN_CONTROLLED thread with thread_state_updated_at < 12 hours ago
     does NOT auto-resume."""
     # Arrange: seed customer HUMAN_CONTROLLED with timestamp < 12 hours ago
-    recent_time = datetime.now() - timedelta(hours=IDLE_TIMEOUT_HOURS - 1)
+    recent_time = utcnow() - timedelta(hours=IDLE_TIMEOUT_HOURS - 1)
     await _seed_customer(
         SENDER_ID_B,
         thread_state="HUMAN_CONTROLLED",
@@ -417,7 +418,7 @@ async def test_pinned_thread_does_not_auto_resume(
     """A HUMAN_CONTROLLED + thread_state_pinned=true thread does NOT
     auto-resume even after 12+ hours."""
     # Arrange: seed customer with pin=True and old timestamp
-    old_time = datetime.now() - timedelta(hours=IDLE_TIMEOUT_HOURS + 2)
+    old_time = utcnow() - timedelta(hours=IDLE_TIMEOUT_HOURS + 2)
     await _seed_customer(
         SENDER_ID_C,
         thread_state="HUMAN_CONTROLLED",
@@ -500,7 +501,7 @@ async def test_pinned_thread_does_not_auto_resume(
 async def test_manual_toggle_clears_pin(client, db_session):
     """Manually flipping the toggle clears thread_state_pinned."""
     # Arrange: seed customer with pin=True and HUMAN_CONTROLLED
-    old_time = datetime.now() - timedelta(hours=IDLE_TIMEOUT_HOURS + 1)
+    old_time = utcnow() - timedelta(hours=IDLE_TIMEOUT_HOURS + 1)
     await _seed_customer(
         SENDER_ID_D,
         thread_state="HUMAN_CONTROLLED",
@@ -591,7 +592,7 @@ async def test_auto_resume_on_get_conversations(
     client, db_session, mock_deepseek_api, mock_send_api
 ):
     """Lazy check: GET /conversations auto-resumes a stale HUMAN_CONTROLLED thread."""
-    old_time = datetime.now() - timedelta(hours=IDLE_TIMEOUT_HOURS + 1)
+    old_time = utcnow() - timedelta(hours=IDLE_TIMEOUT_HOURS + 1)
     await _seed_customer(
         SENDER_ID_B,
         thread_state="HUMAN_CONTROLLED",
@@ -629,7 +630,7 @@ async def test_auto_resume_on_get_conversation_messages(
     client, db_session, mock_deepseek_api, mock_send_api
 ):
     """Lazy check: GET /conversations/{id} auto-resumes a stale HUMAN_CONTROLLED thread."""
-    old_time = datetime.now() - timedelta(hours=IDLE_TIMEOUT_HOURS + 1)
+    old_time = utcnow() - timedelta(hours=IDLE_TIMEOUT_HOURS + 1)
     await _seed_customer(
         SENDER_ID_C,
         thread_state="HUMAN_CONTROLLED",

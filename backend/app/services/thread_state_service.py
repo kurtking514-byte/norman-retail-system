@@ -14,6 +14,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.customer import Customer
+from app.core.clock import utcnow
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +36,7 @@ async def update_thread_state(
     """
     old_state = customer.thread_state
     customer.thread_state = new_state
-    customer.thread_state_updated_at = datetime.datetime.now()
+    customer.thread_state_updated_at = utcnow()
     if clear_pin:
         customer.thread_state_pinned = False
     db.add(customer)
@@ -98,14 +99,14 @@ async def check_idle_timeout_auto_resume(
         # No timestamp to compare against — skip
         return False
 
-    elapsed = datetime.datetime.now() - customer.thread_state_updated_at
+    elapsed = utcnow() - customer.thread_state_updated_at
     if elapsed.total_seconds() < _IDLE_TIMEOUT_HOURS * 3600:
         return False
 
     # Perform the auto-resume
     old_ts = customer.thread_state_updated_at.isoformat()
     customer.thread_state = "AI_CONTROLLED"
-    customer.thread_state_updated_at = datetime.datetime.now()
+    customer.thread_state_updated_at = utcnow()
     # Do NOT clear thread_state_pinned (it's already False by this point)
     db.add(customer)
     await db.commit()

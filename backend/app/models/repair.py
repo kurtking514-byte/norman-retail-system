@@ -4,6 +4,7 @@ from sqlalchemy import Column, DateTime, DECIMAL, ForeignKey, Integer, String, T
 from sqlalchemy.orm import relationship
 
 from app.models.base import Base
+from app.core.clock import utcnow
 
 
 class RepairRequest(Base):
@@ -17,6 +18,6 @@ class RepairRequest(Base):
     # Status allowed values: Pending, Diagnosis, In Progress, Ready for Pickup, Released, Cancelled
     status = Column(String(50), default="Pending", index=True)
     notes = Column(Text)
-    updated_at = Column(DateTime, default=datetime.datetime.now)
+    updated_at = Column(DateTime, default=utcnow)
 
     customer = relationship("Customer")

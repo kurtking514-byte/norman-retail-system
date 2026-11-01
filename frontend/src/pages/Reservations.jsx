@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import api from '../services/api';
+import { parseServerDate } from '../utils/dates';
 import StatusBadge from '../components/common/StatusBadge';
 
 // ---------------------------------------------------------------------------
@@ -352,7 +353,7 @@ export default function Reservations() {
 
   const formatDate = (dateStr) => {
     if (!dateStr) return '—';
-    return new Date(dateStr).toLocaleDateString('en-US', {
+    return parseServerDate(dateStr).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',

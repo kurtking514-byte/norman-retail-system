@@ -29,9 +29,19 @@ from app.schemas.conversation import (
     ConversationThreadSummary,
     SendReplyRequest,
 )
+from app.services.messenger_service import is_placeholder_name
 from app.services.send_api_service import send_message
 
 logger = logging.getLogger(__name__)
+
+
+def customer_display_name(customer: Customer) -> str | None:
+    """Full name, or "Messenger User ···1234" (last digits of the Messenger ID)
+    when Facebook didn't share the name, so different customers stay distinguishable."""
+    if is_placeholder_name(customer) and customer.messenger_user_id:
+        return f"Messenger User ···{customer.messenger_user_id[-4:]}"
+    return f"{customer.first_name or ''} {customer.last_name or ''}".strip() or None
+
 
 router = APIRouter(tags=["Conversations"])
 
@@ -105,10 +115,7 @@ async def list_conversations(
         customer = cust_result.scalar_one_or_none()
         if customer:
             customer_id = customer.id
-            customer_name = (
-                f"{customer.first_name or ''} {customer.last_name or ''}".strip()
-                or None
-            )
+            customer_name = customer_display_name(customer)
 
         # ---- Phase 12b: Lazy auto-resume check on read --------------------
         from app.services.thread_state_service import check_idle_timeout_auto_resume
@@ -455,10 +462,7 @@ async def update_thread_state(
     from app.services.thread_state_service import update_thread_state
     await update_thread_state(db, customer, body.thread_state, clear_pin=True)
 
-    customer_name = (
-        f"{customer.first_name or ''} {customer.last_name or ''}".strip()
-        or None
-    )
+    customer_name = customer_display_name(customer)
 
     logger.info(
         "Thread state for %s updated to %s (pinned cleared)",
@@ -520,10 +524,7 @@ async def update_thread_state_pin(
     await db.commit()
     await db.refresh(customer)
 
-    customer_name = (
-        f"{customer.first_name or ''} {customer.last_name or ''}".strip()
-        or None
-    )
+    customer_name = customer_display_name(customer)
 
     logger.info(
         "Thread state pin for %s set to %s",

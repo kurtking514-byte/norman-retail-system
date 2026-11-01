@@ -47,6 +47,31 @@ def verify_signature(
     return hmac.compare_digest(computed, expected_signature)
 
 
+PLACEHOLDER_FIRST_NAME = "Messenger"
+PLACEHOLDER_LAST_NAME = "User"
+
+
+def is_placeholder_name(customer: Customer) -> bool:
+    return (
+        customer.first_name == PLACEHOLDER_FIRST_NAME
+        and customer.last_name == PLACEHOLDER_LAST_NAME
+    )
+
+
+async def _fill_name_from_messenger(db: AsyncSession, customer: Customer) -> None:
+    """Replace the placeholder name with the customer's Facebook name, if Meta allows it."""
+    from app.services.send_api_service import get_user_profile
+
+    profile = await get_user_profile(customer.messenger_user_id)
+    if not profile:
+        return
+    customer.first_name = profile["first_name"] or ""
+    customer.last_name = profile["last_name"] or ""
+    await db.commit()
+    await db.refresh(customer)
+    logger.info("Filled name for messenger_user_id=%s from Messenger profile", customer.messenger_user_id)
+
+
 async def get_or_create_customer(
     db: AsyncSession,
     messenger_user_id: str,
@@ -70,11 +95,13 @@ async def get_or_create_customer(
     customer = result.scalar_one_or_none()
 
     if customer is not None:
+        if is_placeholder_name(customer):
+            await _fill_name_from_messenger(db, customer)
         return customer
 
     customer = Customer(
-        first_name="Messenger",
-        last_name="User",
+        first_name=PLACEHOLDER_FIRST_NAME,
+        last_name=PLACEHOLDER_LAST_NAME,
         phone_number=f"pending-{messenger_user_id}",
         messenger_user_id=messenger_user_id,
     )
@@ -83,6 +110,7 @@ async def get_or_create_customer(
         await db.commit()
         await db.refresh(customer)
         logger.info("Created Customer with messenger_user_id=%s", messenger_user_id)
+        await _fill_name_from_messenger(db, customer)
         return customer
     except IntegrityError:
         # Another concurrent request inserted this messenger_user_id first.

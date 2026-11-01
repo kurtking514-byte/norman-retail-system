@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../services/api';
+import { parseServerDate } from '../utils/dates';
 import StatusBadge from '../components/common/StatusBadge';
 
 /**
@@ -23,7 +24,7 @@ const peso = new Intl.NumberFormat('en-PH', {
 
 function timeAgo(iso) {
   if (!iso) return '';
-  const minutes = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
+  const minutes = Math.round((Date.now() - parseServerDate(iso).getTime()) / 60000);
   if (minutes < 1) return 'just now';
   if (minutes < 60) return `${minutes}m ago`;
   const hours = Math.round(minutes / 60);
@@ -169,17 +170,17 @@ export default function Dashboard() {
   );
   const in24h = Date.now() + 24 * 60 * 60 * 1000;
   const expiringSoon = activeReservations.filter(
-    (r) => new Date(r.expiry_date).getTime() <= in24h,
+    (r) => parseServerDate(r.expiry_date).getTime() <= in24h,
   );
   const openRepairs = repairs.filter((r) => !CLOSED_REPAIR_STATUSES.includes(r.status));
   const readyForPickup = repairs.filter((r) => r.status === 'Ready for Pickup');
   const humanThreads = conversations.filter((c) => c.thread_state === 'HUMAN_CONTROLLED');
 
   const recentChats = [...conversations]
-    .sort((a, b) => new Date(b.last_message_timestamp) - new Date(a.last_message_timestamp))
+    .sort((a, b) => parseServerDate(b.last_message_timestamp) - parseServerDate(a.last_message_timestamp))
     .slice(0, 5);
   const upcomingReservations = [...activeReservations]
-    .sort((a, b) => new Date(a.expiry_date) - new Date(b.expiry_date))
+    .sort((a, b) => parseServerDate(a.expiry_date) - parseServerDate(b.expiry_date))
     .slice(0, 5);
 
   const today = new Date().toLocaleDateString('en-PH', {
@@ -316,7 +317,7 @@ export default function Dashboard() {
           ) : (
             <ul className="divide-y divide-slate-100">
               {upcomingReservations.map((r) => {
-                const expires = new Date(r.expiry_date);
+                const expires = parseServerDate(r.expiry_date);
                 const overdue = expires.getTime() < Date.now();
                 return (
                   <li key={r.id} className="flex items-center gap-3 px-5 py-3">

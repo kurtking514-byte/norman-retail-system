@@ -13,6 +13,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import api from '../services/api';
+import { parseServerDate } from '../utils/dates';
 import StatusBadge from '../components/common/StatusBadge';
 
 // =========================================================================
@@ -21,13 +22,13 @@ import StatusBadge from '../components/common/StatusBadge';
 
 function formatTime(dateStr) {
   if (!dateStr) return '';
-  const d = new Date(dateStr);
+  const d = parseServerDate(dateStr);
   return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 }
 
 function formatDate(dateStr) {
   if (!dateStr) return '';
-  const d = new Date(dateStr);
+  const d = parseServerDate(dateStr);
   const today = new Date();
   const yesterday = new Date(today);
   yesterday.setDate(yesterday.getDate() - 1);
@@ -323,8 +324,8 @@ export default function LiveChat() {
                 )
                 .sort(
                   (a, b) =>
-                    new Date(b.last_message_timestamp) -
-                    new Date(a.last_message_timestamp)
+                    parseServerDate(b.last_message_timestamp) -
+                    parseServerDate(a.last_message_timestamp)
                 );
             });
 

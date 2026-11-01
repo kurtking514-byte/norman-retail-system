@@ -86,3 +86,31 @@ async def send_message(recipient_id: str, message_text: str) -> bool:
             exc,
         )
         return False
+
+
+async def get_user_profile(psid: str) -> dict | None:
+    """Fetch a Messenger user's first/last name via the User Profile API.
+
+    Returns ``{"first_name": ..., "last_name": ...}`` or ``None`` if there is
+    no page token (dev mode) or Meta refuses the request — e.g. when the app
+    lacks profile access for that user. Never raises.
+    """
+    page_token = settings.MESSENGER_PAGE_ACCESS_TOKEN
+    if not page_token:
+        return None
+
+    try:
+        async with httpx.AsyncClient(timeout=5) as client:
+            response = await client.get(
+                f"{GRAPH_API_BASE}/{psid}",
+                params={"fields": "first_name,last_name", "access_token": page_token},
+            )
+            response.raise_for_status()
+            data = response.json()
+    except Exception as exc:
+        logger.warning("Could not fetch Messenger profile for %s: %s", psid, exc)
+        return None
+
+    if not data.get("first_name") and not data.get("last_name"):
+        return None
+    return {"first_name": data.get("first_name"), "last_name": data.get("last_name")}

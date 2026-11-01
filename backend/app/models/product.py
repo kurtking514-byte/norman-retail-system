@@ -4,6 +4,7 @@ from sqlalchemy import Boolean, Column, DateTime, DECIMAL, ForeignKey, Integer, 
 from sqlalchemy.orm import relationship
 
 from app.models.base import Base
+from app.core.clock import utcnow
 
 
 class Brand(Base):
@@ -38,7 +39,7 @@ class Product(Base):
     warranty_months = Column(Integer, default=12)
     specifications = Column(JSON, nullable=True)
     is_active = Column(Boolean, default=True)
-    created_at = Column(DateTime, default=datetime.datetime.now)
+    created_at = Column(DateTime, default=utcnow)
 
     brand = relationship("Brand", back_populates="products")
     category = relationship("Category", back_populates="products")
@@ -57,7 +58,7 @@ class Inventory(Base):
     # Status allowed values: In Stock, Sold, Reserved, In Repair
     status = Column(String(50), default="In Stock", index=True)
     location = Column(String(100), default="Main Store")
-    date_added = Column(DateTime, default=datetime.datetime.now)
+    date_added = Column(DateTime, default=utcnow)
 
     product = relationship("Product", back_populates="inventory_items")
 

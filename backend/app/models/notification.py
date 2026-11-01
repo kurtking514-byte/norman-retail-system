@@ -3,6 +3,7 @@ import datetime
 from sqlalchemy import Column, DateTime, Integer, JSON, String, Text
 
 from app.models.base import Base
+from app.core.clock import utcnow
 
 
 class ConversationLog(Base):
@@ -14,7 +15,7 @@ class ConversationLog(Base):
     speaker = Column(String(50), nullable=False)
     message_text = Column(Text)
     payload = Column(JSON, nullable=True)
-    timestamp = Column(DateTime, default=datetime.datetime.now)
+    timestamp = Column(DateTime, default=utcnow)
 
 
 class NotificationQueue(Base):
@@ -27,4 +28,4 @@ class NotificationQueue(Base):
     payload = Column(JSON, nullable=False)
     # Status allowed values: Pending, Sent, Failed
     status = Column(String(50), default="Pending", index=True)
-    created_at = Column(DateTime, default=datetime.datetime.now)
+    created_at = Column(DateTime, default=utcnow)
