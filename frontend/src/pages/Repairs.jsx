@@ -459,31 +459,31 @@ export default function Repairs() {
     }`;
 
   return (
-    <div>
-      <div className="mb-5">
+    <div className="lg:h-full lg:flex lg:flex-col">
+      <div className="mb-5 flex-shrink-0">
         <h1 className="text-2xl text-stone-800">Repairs</h1>
         <p className="text-sm text-stone-500 mt-0.5">
           {loading ? 'Loading...' : `${activeCount} in the shop · ${repairs.length} total`}
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)] min-[1400px]:grid-cols-[330px_minmax(0,1fr)] gap-6 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)] min-[1400px]:grid-cols-[330px_minmax(0,1fr)] gap-6 lg:flex-1 lg:min-h-0">
         {/* Left box: add a repair */}
-        <div className="lg:sticky lg:top-0">
+        <div className="lg:min-h-0 lg:overflow-y-auto">
           <QuickAddRepair deviceSuggestions={deviceSuggestions} onCreated={fetchData} />
         </div>
 
         {/* Right box: the list */}
-        <div className="min-w-0">
+        <div className="min-w-0 lg:min-h-0 lg:flex lg:flex-col">
           {error && (
-            <div className="mb-4 px-4 py-3 bg-brand-50 border border-brand-200 text-brand-800 text-sm rounded-lg flex items-center justify-between">
+            <div className="mb-4 flex-shrink-0 px-4 py-3 bg-brand-50 border border-brand-200 text-brand-800 text-sm rounded-lg flex items-center justify-between">
               <span>{error}</span>
               <button onClick={() => setError('')} className="text-brand-500 hover:text-brand-700 ml-2">&times;</button>
             </div>
           )}
 
           {/* Search and stage filter (the chips double as the color legend) */}
-          <div className="mb-4 flex flex-wrap items-center gap-2">
+          <div className="mb-4 flex-shrink-0 flex flex-wrap items-center gap-2">
             <input
               type="search"
               value={search}
@@ -506,7 +506,7 @@ export default function Repairs() {
           </div>
 
           {/* Table */}
-          <div className="bg-white rounded-lg border border-stone-200 overflow-x-auto shadow-sm">
+          <div className="bg-white rounded-lg border border-stone-200 overflow-auto shadow-sm lg:flex-1 lg:min-h-0">
             {loading ? (
               <div className="p-8 space-y-4">
                 {[1, 2, 3].map((i) => (
@@ -523,7 +523,7 @@ export default function Repairs() {
             ) : (
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-stone-50 border-b border-stone-200 text-left">
+                  <tr className="text-left [&>th]:sticky [&>th]:top-0 [&>th]:z-10 [&>th]:bg-stone-50 [&>th]:shadow-[inset_0_-1px_0_theme(colors.stone.200)]">
                     <th className="px-3 py-3 font-semibold text-stone-600">Job</th>
                     <th className="px-3 py-3 font-semibold text-stone-600">Customer &amp; phone</th>
                     <th className="px-3 py-3 font-semibold text-stone-600">Repair</th>
