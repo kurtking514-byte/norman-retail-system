@@ -6,7 +6,7 @@ import api from '../../services/api';
  * When off, customer messages are still saved and shown in Live Chat,
  * but the AI does not reply to anyone.
  */
-export default function AiSwitch() {
+export default function AiSwitch({ onDark = false }) {
   const [enabled, setEnabled] = useState(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -46,9 +46,9 @@ export default function AiSwitch() {
   return (
     <div className="flex items-center gap-3">
       {error && <span className="text-xs text-red-600">{error}</span>}
-      <span className="text-sm text-stone-600">
+      <span className={`text-sm ${onDark ? 'text-stone-300' : 'text-stone-600'}`}>
         AI chatbot:{' '}
-        <span className={`font-semibold ${enabled ? 'text-terrace-600' : 'text-red-600'}`}>
+        <span className={`font-semibold ${enabled ? (onDark ? 'text-white' : 'text-terrace-600') : (onDark ? 'text-brand-300' : 'text-red-600')}`}>
           {enabled ? 'On' : 'Off'}
         </span>
       </span>
@@ -65,7 +65,7 @@ export default function AiSwitch() {
         onClick={toggle}
         disabled={saving}
         className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors disabled:opacity-50 ${
-          enabled ? 'bg-terrace-500' : 'bg-stone-300'
+          enabled ? 'bg-terrace-500' : onDark ? 'bg-stone-500' : 'bg-stone-300'
         }`}
       >
         <span

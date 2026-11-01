@@ -9,6 +9,27 @@
 }
 
 @layer components {
+  /* Lettering of the shop sign: heavy red capitals with a white outline */
+  .sign-text {
+    font-family: Montserrat, Barlow, sans-serif;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+    color: #e3261c;
+    text-shadow:
+      2px 0 #fff, -2px 0 #fff, 0 2px #fff, 0 -2px #fff,
+      1.5px 1.5px #fff, -1.5px -1.5px #fff, 1.5px -1.5px #fff, -1.5px 1.5px #fff,
+      0 3px 6px rgba(0, 0, 0, 0.45);
+  }
+
+  .banner-terraces {
+    background: url('/banner-terraces.webp') repeat-x center / auto 100%;
+  }
+
+  .banner-cloth {
+    background: url('/banner-cloth.webp') repeat-y center / 100% auto;
+  }
+
   /* Stripe band in the colors of the woven cloth on the shop sign */
   .weave {
     background-image: repeating-linear-gradient(

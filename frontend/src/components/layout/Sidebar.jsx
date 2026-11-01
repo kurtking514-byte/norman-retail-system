@@ -12,19 +12,9 @@ const navItems = [
 export default function Sidebar() {
   return (
     <aside className="w-64 flex-shrink-0 bg-ink-900 text-white flex flex-col h-full overflow-y-auto">
-      <div className="weave h-1.5 flex-shrink-0" />
-
-      {/* Brand */}
-      <div className="px-4 pt-4 pb-3">
-        <img
-          src="/norman-logo-small.webp"
-          alt="Norman Cellphone Center & Accessories"
-          className="w-full rounded-md ring-1 ring-white/10"
-        />
-        <p className="mt-2 font-display text-xs font-semibold uppercase tracking-[0.18em] text-stone-400">
-          Staff dashboard
-        </p>
-      </div>
+      <p className="px-6 pt-5 pb-1 font-display text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">
+        Staff dashboard
+      </p>
 
       {/* Navigation */}
       <nav className="flex-1 px-3 py-3 space-y-0.5">

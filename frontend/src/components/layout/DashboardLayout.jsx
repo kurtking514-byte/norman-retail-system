@@ -1,5 +1,6 @@
 import { useAuth } from '../../context/AuthContext';
 import Sidebar from './Sidebar';
+import ShopBanner from './ShopBanner';
 import AiSwitch from '../common/AiSwitch';
 import { useNavigate } from 'react-router-dom';
 
@@ -13,34 +14,28 @@ export default function DashboardLayout({ children }) {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden">
-      <Sidebar />
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Top bar */}
-        <header className="bg-white border-b border-stone-200 px-6 py-3 flex items-center justify-between">
-          <div className="text-sm text-stone-500">
-            Signed in as{' '}
-            <span className="font-semibold text-stone-800">
-              {user?.username || 'Admin'}
-            </span>
-          </div>
-          <div className="flex items-center gap-4">
-            <AiSwitch />
-            <button
-              onClick={handleLogout}
-              className="px-3 py-1.5 text-sm font-semibold text-stone-600 border border-stone-300 hover:border-stone-400 hover:text-stone-900 rounded-md transition-colors"
-            >
-              Log out
-            </button>
-          </div>
-        </header>
+    <div className="flex flex-col h-screen overflow-hidden">
+      <ShopBanner>
+        <div className="flex items-center gap-4 rounded-md bg-ink-900/75 px-4 py-2 text-sm text-white backdrop-blur-sm">
+          <span className="hidden md:inline text-stone-300">
+            Signed in as <span className="font-semibold text-white">{user?.username || 'Admin'}</span>
+          </span>
+          <AiSwitch onDark />
+          <button
+            onClick={handleLogout}
+            className="px-3 py-1 font-semibold text-white border border-white/30 hover:bg-white/10 rounded-md transition-colors"
+          >
+            Log out
+          </button>
+        </div>
+      </ShopBanner>
 
-        {/* Page content */}
-        <main className="flex-1 min-h-0 p-6 overflow-auto">
+      <div className="flex flex-1 min-h-0">
+        <Sidebar />
+        <main className="flex-1 min-h-0 min-w-0 p-6 overflow-auto">
           {children}
         </main>
       </div>
     </div>
   );
 }
-

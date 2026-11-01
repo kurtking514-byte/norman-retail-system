@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import ShopBanner from '../components/layout/ShopBanner';
 
 export default function Login() {
   const { login, isAuthenticated } = useAuth();
@@ -44,26 +45,11 @@ export default function Login() {
 
   return (
     <div className="min-h-screen bg-stone-100 flex flex-col">
-      <div className="weave h-2" />
-      <div className="flex-1 flex items-center justify-center px-4 py-10">
-        <div className="w-full max-w-4xl grid md:grid-cols-2 bg-white rounded-lg border border-stone-200 shadow-xl overflow-hidden">
-          {/* Shop sign */}
-          <div className="bg-ink-900 p-6 sm:p-8 flex flex-col justify-between gap-6">
-            <img
-              src="/norman-logo.webp"
-              alt="Norman Cellphone Center & Accessories"
-              className="w-full rounded-md ring-1 ring-white/10"
-            />
-            <div>
-              <p className="font-display text-lg font-bold uppercase tracking-wide text-white">
-                Retailer of authentic mobile phones and accessories
-              </p>
-              <p className="mt-1 text-sm text-stone-400">Maddela Public Market, Maddela, Quirino</p>
-            </div>
-          </div>
-
-          {/* Form */}
-          <div className="p-6 sm:p-10 flex flex-col justify-center">
+      <ShopBanner tagline="Retailer of authentic mobile phones and accessories" />
+      <div className="flex-1 flex items-start sm:items-center justify-center px-4 py-10">
+        <div className="w-full max-w-md bg-white rounded-lg border border-stone-200 shadow-xl overflow-hidden">
+          <div className="weave h-1.5" />
+          <div className="p-6 sm:p-10">
             <h1 className="text-3xl text-stone-900">Staff sign in</h1>
             <p className="mt-1 mb-6 text-sm text-stone-500">Inventory, reservations, repairs and customer chats.</p>
 
@@ -124,6 +110,9 @@ export default function Login() {
           </div>
         </div>
       </div>
+      <p className="pb-6 text-center text-xs text-stone-500">
+        Maddela Public Market, Maddela, Quirino
+      </p>
     </div>
   );
 }
