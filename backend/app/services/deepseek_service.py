@@ -206,10 +206,9 @@ async def build_shop_context(db: AsyncSession) -> str:
             desc = (p.description or "").strip()
             desc_line = f" — {desc}" if desc else ""
             # IMPORTANT: only selling_price, never cost_price
-            lines.append(
-                f"  • {p.name} (Model: {p.model_number}) — "
-                f"₱{p.selling_price:.2f}{desc_line}"
-            )
+            model = f" (Model: {p.model_number})" if p.model_number else ""
+            price = f"₱{p.selling_price:.2f}" if p.selling_price is not None else "price not set, ask staff"
+            lines.append(f"  • {p.name}{model} — {price}{desc_line}")
         lines.append("")
 
     # ---- FAQs ----------------------------------------------------------------

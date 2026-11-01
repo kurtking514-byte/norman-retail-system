@@ -29,13 +29,13 @@ class Product(Base):
     __tablename__ = "products"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    brand_id = Column(Integer, ForeignKey("brands.id"), nullable=False)
-    category_id = Column(Integer, ForeignKey("categories.id"), nullable=False)
+    brand_id = Column(Integer, ForeignKey("brands.id"), nullable=True)
+    category_id = Column(Integer, ForeignKey("categories.id"), nullable=True)
     name = Column(String(255), nullable=False)
-    model_number = Column(String(100), unique=True, nullable=False, index=True)
+    model_number = Column(String(100), unique=True, nullable=True, index=True)
     description = Column(Text, nullable=True)
-    cost_price = Column(DECIMAL(10, 2), nullable=False)
-    selling_price = Column(DECIMAL(10, 2), nullable=False)
+    cost_price = Column(DECIMAL(10, 2), nullable=True)
+    selling_price = Column(DECIMAL(10, 2), nullable=True)
     warranty_months = Column(Integer, default=12)
     specifications = Column(JSON, nullable=True)
     is_active = Column(Boolean, default=True)

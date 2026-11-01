@@ -94,7 +94,7 @@ export default function Inventory() {
       if (!q) return true;
       return (
         p.name.toLowerCase().includes(q) ||
-        p.model_number.toLowerCase().includes(q) ||
+        (p.model_number || '').toLowerCase().includes(q) ||
         (brandName[p.brand_id] || '').toLowerCase().includes(q)
       );
     });
@@ -111,7 +111,7 @@ export default function Inventory() {
   const visible = useMemo(
     () =>
       baseFiltered
-        .filter((p) => categoryTab === 'all' || String(p.category_id) === categoryTab)
+        .filter((p) => categoryTab === 'all' || String(p.category_id ?? 'none') === categoryTab)
         .sort((a, b) => a.name.localeCompare(b.name)),
     [baseFiltered, categoryTab],
   );
@@ -198,6 +198,11 @@ export default function Inventory() {
             {c.name} <span className="opacity-60">{tabCounts[c.id] || 0}</span>
           </button>
         ))}
+        {tabCounts.null > 0 && (
+          <button className={tabClass(categoryTab === 'none')} onClick={() => setCategoryTab('none')}>
+            No category <span className="opacity-60">{tabCounts.null}</span>
+          </button>
+        )}
       </div>
 
       {/* Filters */}
@@ -284,14 +289,13 @@ export default function Inventory() {
                         {hidden && <span className="ml-2 text-xs font-normal text-slate-500">(hidden)</span>}
                       </div>
                       <div className="text-xs text-slate-400 truncate">
-                        {product.model_number}
-                        {specs && <span className="text-slate-400"> · {specs}</span>}
+                        {[product.model_number, specs].filter(Boolean).join(' · ')}
                       </div>
                     </td>
                     <td className="px-4 py-3 text-slate-600">{brandName[product.brand_id] || '—'}</td>
                     <td className="px-4 py-3 text-slate-600">{categoryName[product.category_id] || '—'}</td>
                     <td className="px-4 py-3 text-right text-slate-700 tabular-nums">
-                      {peso.format(Number(product.selling_price))}
+                      {product.selling_price === null ? '—' : peso.format(Number(product.selling_price))}
                     </td>
                     <td className="px-4 py-3">
                       <StatusBadge count={stockOf(product)} />

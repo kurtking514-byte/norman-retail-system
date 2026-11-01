@@ -294,8 +294,8 @@ async def plan_import(db: AsyncSession, results: list[RowResult]) -> dict[str, P
         r.stock_current = stock.get(product.id, 0)
         changed = (
             product.name != r.data["name"]
-            or float(product.cost_price) != r.data["cost_price"]
-            or float(product.selling_price) != r.data["selling_price"]
+            or _float(product.cost_price) != r.data["cost_price"]
+            or _float(product.selling_price) != r.data["selling_price"]
             or product.warranty_months != r.data["warranty_months"]
             or (product.description or None) != r.data["description"]
             or (product.specifications or None) != r.data["specifications"]
@@ -304,6 +304,10 @@ async def plan_import(db: AsyncSession, results: list[RowResult]) -> dict[str, P
         )
         r.action = "update" if changed else "unchanged"
     return existing
+
+
+def _float(value) -> float | None:
+    return None if value is None else float(value)
 
 
 async def _get_or_create(db: AsyncSession, model, name: str, cache: dict):

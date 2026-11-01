@@ -23,6 +23,13 @@ async def init_db() -> None:
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
+    if engine.dialect.name == "postgresql":
+        # create_all never alters existing tables, so apply the "product fields
+        # are optional" change here too (a no-op once the columns allow NULL).
+        async with engine.begin() as conn:
+            for column in ("brand_id", "category_id", "model_number", "cost_price", "selling_price"):
+                await conn.exec_driver_sql(f"ALTER TABLE products ALTER COLUMN {column} DROP NOT NULL")
+
 
 async_session_factory = async_sessionmaker(
     bind=engine,

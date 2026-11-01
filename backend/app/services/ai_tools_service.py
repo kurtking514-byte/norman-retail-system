@@ -97,7 +97,7 @@ async def check_product_availability(
         "found": True,
         "product_name": product.name,
         "model_number": product.model_number,
-        "selling_price": float(product.selling_price),
+        "selling_price": float(product.selling_price) if product.selling_price is not None else None,
         "in_stock_count": in_stock_count,
     }
 

@@ -34,7 +34,7 @@ function NewReservationModal({ open, onClose, onCreated, products }) {
   const filteredProducts = products.filter(
     (p) =>
       p.name.toLowerCase().includes(search.toLowerCase()) ||
-      p.model_number.toLowerCase().includes(search.toLowerCase()),
+      (p.model_number || '').toLowerCase().includes(search.toLowerCase()),
   );
 
   const handleChange = (e) => {
@@ -132,7 +132,9 @@ function NewReservationModal({ open, onClose, onCreated, products }) {
               <option value="">-- Select a product --</option>
               {filteredProducts.map((p) => (
                 <option key={p.id} value={p.id}>
-                  {p.name} ({p.model_number}) — ${Number(p.selling_price).toFixed(2)}
+                  {p.name}
+                  {p.model_number ? ` (${p.model_number})` : ''}
+                  {p.selling_price === null ? '' : ` — ₱${Number(p.selling_price).toFixed(2)}`}
                 </option>
               ))}
             </select>

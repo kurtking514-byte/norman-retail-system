@@ -35,18 +35,23 @@ function emptyForm() {
   };
 }
 
+const asText = (value) => (value === null || value === undefined ? '' : String(value));
+
+/** Empty input -> null; otherwise a number (NaN if it isn't one). */
+const optionalNumber = (value) => (String(value).trim() === '' ? null : Number(value));
+
 function formFromProduct(product, stock) {
   const specs = Object.entries(product.specifications || {}).map(([key, value]) => ({
     key,
     value: String(value),
   }));
   return {
-    name: product.name,
-    model_number: product.model_number,
-    brand_id: String(product.brand_id),
-    category_id: String(product.category_id),
-    cost_price: String(product.cost_price),
-    selling_price: String(product.selling_price),
+    name: product.name || '',
+    model_number: product.model_number || '',
+    brand_id: asText(product.brand_id),
+    category_id: asText(product.category_id),
+    cost_price: asText(product.cost_price),
+    selling_price: asText(product.selling_price),
     warranty_months: product.warranty_months ?? 12,
     description: product.description || '',
     is_active: product.is_active !== false,
@@ -81,7 +86,7 @@ function NamePicker({ label, value, options, onChange, endpoint, onCreated }) {
 
   return (
     <div>
-      <label className="block text-sm font-medium text-slate-700 mb-1">{label} *</label>
+      <label className="block text-sm font-medium text-slate-700 mb-1">{label}</label>
       {adding ? (
         <div className="flex gap-2">
           <input
@@ -112,9 +117,8 @@ function NamePicker({ label, value, options, onChange, endpoint, onCreated }) {
           value={value}
           onChange={(e) => (e.target.value === '__new' ? setAdding(true) : onChange(e.target.value))}
           className={inputClass}
-          required
         >
-          <option value="" disabled>Choose…</option>
+          <option value="">None</option>
           {options.map((o) => (
             <option key={o.id} value={String(o.id)}>{o.name}</option>
           ))}
@@ -169,23 +173,24 @@ export default function ProductPanel({
     setError('');
     setNotice('');
 
-    const cost = parseFloat(form.cost_price);
-    const price = parseFloat(form.selling_price);
-    const stockTarget = parseInt(form.in_stock, 10);
-    if (!form.brand_id || !form.category_id) return setError('Choose a brand and a category.');
+    const cost = optionalNumber(form.cost_price);
+    const price = optionalNumber(form.selling_price);
+    const stockTarget = parseInt(form.in_stock, 10) || 0;
     if (Number.isNaN(cost) || Number.isNaN(price)) return setError('Enter valid prices.');
-    if (price <= cost) return setError('Selling price must be higher than cost price.');
-    if (Number.isNaN(stockTarget) || stockTarget < 0) return setError('Stock must be 0 or more.');
+    if (cost !== null && price !== null && price <= cost) {
+      return setError('Selling price must be higher than cost price.');
+    }
+    if (stockTarget < 0) return setError('Stock must be 0 or more.');
 
     const specifications = {};
     for (const { key, value } of form.specs) {
       if (key.trim() && value.trim()) specifications[key.trim()] = value.trim();
     }
     const body = {
-      name: form.name.trim(),
-      model_number: form.model_number.trim(),
-      brand_id: parseInt(form.brand_id, 10),
-      category_id: parseInt(form.category_id, 10),
+      name: form.name.trim() || null,
+      model_number: form.model_number.trim() || null,
+      brand_id: form.brand_id ? parseInt(form.brand_id, 10) : null,
+      category_id: form.category_id ? parseInt(form.category_id, 10) : null,
       cost_price: cost,
       selling_price: price,
       warranty_months: parseInt(form.warranty_months, 10) || 12,
@@ -229,7 +234,7 @@ export default function ProductPanel({
             <h2 className="text-lg font-semibold text-slate-800 truncate">
               {isNew ? 'Add product' : product.name}
             </h2>
-            {!isNew && <p className="text-xs text-slate-500 truncate">{product.model_number}</p>}
+            {!isNew && product.model_number && <p className="text-xs text-slate-500 truncate">{product.model_number}</p>}
           </div>
           <button type="button" onClick={onClose} className="text-slate-400 hover:text-slate-600 text-xl leading-none">
             &times;
@@ -272,26 +277,26 @@ export default function ProductPanel({
           {/* Details */}
           <section className="grid grid-cols-2 gap-4">
             <div className="col-span-2">
-              <label className="block text-sm font-medium text-slate-700 mb-1">Name *</label>
-              <input value={form.name} onChange={set('name')} required className={inputClass}
+              <label className="block text-sm font-medium text-slate-700 mb-1">Name</label>
+              <input value={form.name} onChange={set('name')} className={inputClass}
                 placeholder="e.g. Galaxy A55 5G 8/256GB" />
             </div>
             <div className="col-span-2">
-              <label className="block text-sm font-medium text-slate-700 mb-1">Model number *</label>
-              <input value={form.model_number} onChange={set('model_number')} required className={inputClass}
-                placeholder="Unique code, e.g. SM-A556E-256" />
+              <label className="block text-sm font-medium text-slate-700 mb-1">Model number</label>
+              <input value={form.model_number} onChange={set('model_number')} className={inputClass}
+                placeholder="e.g. SM-A556E-256 (must be unique if filled in)" />
             </div>
             <NamePicker label="Brand" value={form.brand_id} options={brands} endpoint="/brands"
               onChange={(v) => setForm((f) => ({ ...f, brand_id: v }))} onCreated={onBrandCreated} />
             <NamePicker label="Category" value={form.category_id} options={categories} endpoint="/categories"
               onChange={(v) => setForm((f) => ({ ...f, category_id: v }))} onCreated={onCategoryCreated} />
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Cost price (₱) *</label>
-              <input type="number" step="0.01" min="0" value={form.cost_price} onChange={set('cost_price')} required className={inputClass} />
+              <label className="block text-sm font-medium text-slate-700 mb-1">Cost price (₱)</label>
+              <input type="number" step="0.01" min="0" value={form.cost_price} onChange={set('cost_price')} className={inputClass} />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Selling price (₱) *</label>
-              <input type="number" step="0.01" min="0" value={form.selling_price} onChange={set('selling_price')} required className={inputClass} />
+              <label className="block text-sm font-medium text-slate-700 mb-1">Selling price (₱)</label>
+              <input type="number" step="0.01" min="0" value={form.selling_price} onChange={set('selling_price')} className={inputClass} />
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">Warranty (months)</label>
@@ -325,9 +330,9 @@ export default function ProductPanel({
                 <div key={i} className="flex gap-2">
                   <input value={spec.key} onChange={(e) => setSpec(i, 'key', e.target.value)}
                     placeholder="Spec (e.g. RAM)" list="spec-suggestions"
-                    className={`${inputClass} w-40 flex-shrink-0`} />
+                    className={`${inputClass} !w-32 sm:!w-40 flex-shrink-0`} />
                   <input value={spec.value} onChange={(e) => setSpec(i, 'value', e.target.value)}
-                    placeholder="Value (e.g. 8GB)" className={inputClass} />
+                    placeholder="Value (e.g. 8GB)" className={`${inputClass} min-w-0`} />
                   <button type="button" aria-label="Remove spec"
                     onClick={() => setForm((f) => ({ ...f, specs: f.specs.filter((_, j) => j !== i) }))}
                     className="px-2 text-slate-400 hover:text-red-600">

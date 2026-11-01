@@ -9,6 +9,7 @@ Covers:
 - ``PUT /products/{id}/stock`` adds/removes untracked units and never removes
   serial-numbered ones.
 - ``GET /inventory/summary`` returns in-stock counts per product.
+- Products can be saved with every field left blank.
 """
 
 import os
@@ -50,7 +51,10 @@ async def client():
 async def cleanup():
     async def _clean():
         async with async_session_factory() as s:
-            ids = (await s.execute(select(Product.id).where(Product.model_number.like(f"{PREFIX}%")))).scalars().all()
+            ids = (await s.execute(select(Product.id).where(
+                Product.model_number.like(f"{PREFIX}%") | Product.name.like(f"{PREFIX}%")
+                | (Product.name == "Untitled product")
+            ))).scalars().all()
             if ids:
                 await s.execute(Inventory.__table__.delete().where(Inventory.product_id.in_(ids)))
                 await s.execute(Product.__table__.delete().where(Product.id.in_(ids)))
@@ -127,3 +131,28 @@ async def test_set_stock_up_down_and_keeps_serialized_units(client):
 
     assert (await client.put(url, json={"in_stock": -1})).status_code == 422
     assert (await client.put("/api/v1/products/999999/stock", json={"in_stock": 1})).status_code == 404
+
+
+async def test_products_can_be_saved_with_blank_fields(client):
+    empty = await client.post("/api/v1/products", json={})
+    assert empty.status_code == 201, empty.text
+    body = empty.json()
+    assert body["name"] == "Untitled product"
+    assert (body["model_number"], body["brand_id"], body["category_id"]) == (None, None, None)
+    assert (body["cost_price"], body["selling_price"]) == (None, None)
+
+    # Blank model numbers are stored as "none", so several products can skip it.
+    a = await client.post("/api/v1/products", json={"name": f"{PREFIX}a", "model_number": "  "})
+    b = await client.post("/api/v1/products", json={"name": f"{PREFIX}b", "model_number": ""})
+    assert (a.status_code, b.status_code) == (201, 201)
+    assert a.json()["model_number"] is None
+
+    # Only one price given: nothing to compare, so it's accepted.
+    priced = await client.put(f"/api/v1/products/{a.json()['id']}", json={"selling_price": 500})
+    assert priced.status_code == 200
+    cleared = await client.put(f"/api/v1/products/{a.json()['id']}", json={"selling_price": None, "name": ""})
+    assert cleared.json()["selling_price"] is None
+    assert cleared.json()["name"] == "Untitled product"
+
+    public = (await client.get("/api/v1/products/public", params={"q": PREFIX})).json()
+    assert {p["selling_price"] for p in public} == {None}
