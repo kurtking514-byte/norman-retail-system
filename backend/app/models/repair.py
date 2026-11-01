@@ -13,6 +13,8 @@ class RepairRequest(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     customer_id = Column(Integer, ForeignKey("customers.id"), nullable=False)
     device_model = Column(String(255), nullable=False)
+    # What is being fixed, picked from a list in the admin (e.g. "Screen replacement")
+    repair_type = Column(String(100), nullable=True)
     issue_description = Column(Text, nullable=False)
     estimated_cost = Column(DECIMAL(10, 2), default=0.0)
     # Status allowed values: Pending, Diagnosis, In Progress, Ready for Pickup, Released, Cancelled

@@ -1,6 +1,57 @@
 import { useState, useEffect, useCallback } from 'react';
 import api from '../services/api';
-import StatusBadge from '../components/common/StatusBadge';
+
+// What staff can pick in "What needs fixing"
+const REPAIR_TYPES = [
+  'Screen replacement',
+  'Battery replacement',
+  'Charging port',
+  'Back glass / housing',
+  'Camera',
+  'Speaker / microphone',
+  'Buttons',
+  'Water damage',
+  'Not turning on',
+  'Software / reset',
+  'Network / signal',
+  'Other',
+];
+
+const peso = new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' });
+
+// Every status belongs to a stage; the stage decides the color.
+const STAGES = [
+  { key: 'line', label: 'In line', statuses: ['Pending'],
+    badge: 'bg-amber-100 text-amber-800', bar: 'border-l-amber-400', dot: 'bg-amber-400' },
+  { key: 'repairing', label: 'Being repaired', statuses: ['Diagnosis', 'In Progress'],
+    badge: 'bg-blue-100 text-blue-800', bar: 'border-l-blue-500', dot: 'bg-blue-500' },
+  { key: 'done', label: 'Done', statuses: ['Ready for Pickup', 'Released', 'Completed'],
+    badge: 'bg-emerald-100 text-emerald-800', bar: 'border-l-emerald-500', dot: 'bg-emerald-500' },
+  { key: 'cancelled', label: 'Cancelled', statuses: ['Cancelled'],
+    badge: 'bg-slate-100 text-slate-500', bar: 'border-l-slate-300', dot: 'bg-slate-400' },
+];
+
+const stageOf = (status) => STAGES.find((s) => s.statuses.includes(status)) || STAGES[0];
+
+// Friendlier names for the stored status values
+const STATUS_LABELS = {
+  Pending: 'In line',
+  Diagnosis: 'Checking the problem',
+  'In Progress': 'Being repaired',
+  'Ready for Pickup': 'Done – ready for pickup',
+  Released: 'Released to customer',
+  Cancelled: 'Cancelled',
+};
+
+function RepairStatusBadge({ status }) {
+  const stage = stageOf(status);
+  return (
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${stage.badge}`}>
+      <span className={`h-1.5 w-1.5 rounded-full ${stage.dot}`} />
+      {STATUS_LABELS[status] || status}
+    </span>
+  );
+}
 
 // ---------------------------------------------------------------------------
 // New Repair Request Modal
@@ -12,6 +63,7 @@ const emptyForm = {
   last_name: '',
   phone_number: '',
   device_model: '',
+  repair_type: '',
   issue_description: '',
   estimated_cost: '',
 };
@@ -38,13 +90,18 @@ function NewRepairModal({ open, onClose, onCreated }) {
     e.preventDefault();
     setError('');
 
-    if (!form.device_model || !form.issue_description) {
-      setError('Please fill in device model and issue description.');
+    if (!form.device_model) {
+      setError('Please fill in the device model.');
+      return;
+    }
+    if (!form.repair_type && !form.issue_description.trim()) {
+      setError('Choose what needs fixing or describe the issue.');
       return;
     }
 
     const body = {
       device_model: form.device_model,
+      repair_type: form.repair_type || null,
       issue_description: form.issue_description,
       estimated_cost: parseFloat(form.estimated_cost) || 0,
     };
@@ -117,13 +174,30 @@ function NewRepairModal({ open, onClose, onCreated }) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Issue Description *</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">What needs fixing *</label>
+            <select
+              name="repair_type"
+              value={form.repair_type}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Choose…</option>
+              {REPAIR_TYPES.map((t) => (
+                <option key={t} value={t}>{t}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">
+              Details {form.repair_type ? <span className="font-normal text-slate-400">(optional)</span> : '*'}
+            </label>
             <textarea
               name="issue_description"
               rows="3"
               value={form.issue_description}
               onChange={handleChange}
-              placeholder="Describe the problem..."
+              placeholder={form.repair_type === 'Other' ? 'Describe the problem...' : 'Anything else the technician should know...'}
               className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -131,7 +205,7 @@ function NewRepairModal({ open, onClose, onCreated }) {
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">Estimated Cost</label>
             <div className="relative">
-              <span className="absolute left-3 top-2.5 text-slate-500 text-sm">$</span>
+              <span className="absolute left-3 top-2.5 text-slate-500 text-sm">₱</span>
               <input
                 name="estimated_cost"
                 type="number"
@@ -276,7 +350,7 @@ function InlineCost({ value, onSave }) {
   if (editing) {
     return (
       <div className="relative inline-flex items-center">
-        <span className="absolute left-2 text-slate-500 text-xs">$</span>
+        <span className="absolute left-2 text-slate-500 text-xs">₱</span>
         <input
           type="number"
           step="0.01"
@@ -298,7 +372,7 @@ function InlineCost({ value, onSave }) {
       className="text-sm text-slate-700 hover:text-blue-600 hover:underline cursor-pointer text-left"
       title="Click to edit"
     >
-      ${Number(value).toFixed(2)}
+      {peso.format(Number(value))}
     </button>
   );
 }
@@ -339,7 +413,7 @@ function RepairStatusDropdown({ currentStatus, onChange }) {
       </option>
       {options.map((s) => (
         <option key={s} value={s}>
-          {s}
+          {STATUS_LABELS[s] || s}
         </option>
       ))}
     </select>
@@ -373,23 +447,28 @@ export default function Repairs() {
   const [repairs, setRepairs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
+  const [stageFilter, setStageFilter] = useState('all');
   const [showModal, setShowModal] = useState(false);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
-      const params = {};
-      if (statusFilter) params.status = statusFilter;
-      const res = await api.get('/repairs', { params });
+      const res = await api.get('/repairs');
       setRepairs(res.data);
     } catch (err) {
       setError('Failed to load repair requests.');
     } finally {
       setLoading(false);
     }
-  }, [statusFilter]);
+  }, []);
+
+  const stageCounts = repairs.reduce((counts, r) => {
+    const key = stageOf(r.status).key;
+    counts[key] = (counts[key] || 0) + 1;
+    return counts;
+  }, {});
+  const visible = stageFilter === 'all' ? repairs : repairs.filter((r) => stageOf(r.status).key === stageFilter);
 
   useEffect(() => {
     fetchData();
@@ -453,22 +532,28 @@ export default function Repairs() {
         </div>
       )}
 
-      {/* Filter */}
-      <div className="mb-4 flex items-center gap-2">
-        <label className="text-sm text-slate-600 font-medium">Status:</label>
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+      {/* Stage filter (doubles as the color legend) */}
+      <div className="mb-4 flex flex-wrap gap-2">
+        <button
+          onClick={() => setStageFilter('all')}
+          className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
+            stageFilter === 'all' ? 'bg-slate-800 text-white border-slate-800' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+          }`}
         >
-          <option value="">All</option>
-          <option value="Pending">Pending</option>
-          <option value="Diagnosis">Diagnosis</option>
-          <option value="In Progress">In Progress</option>
-          <option value="Ready for Pickup">Ready for Pickup</option>
-          <option value="Released">Released</option>
-          <option value="Cancelled">Cancelled</option>
-        </select>
+          All <span className="opacity-60">{repairs.length}</span>
+        </button>
+        {STAGES.map((stage) => (
+          <button
+            key={stage.key}
+            onClick={() => setStageFilter(stage.key)}
+            className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
+              stageFilter === stage.key ? `${stage.badge} border-transparent ring-2 ring-offset-1 ring-slate-300` : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+            }`}
+          >
+            <span className={`h-2 w-2 rounded-full ${stage.dot}`} />
+            {stage.label} <span className="opacity-60">{stageCounts[stage.key] || 0}</span>
+          </button>
+        ))}
       </div>
 
       {/* Table */}
@@ -479,11 +564,11 @@ export default function Repairs() {
               <div key={i} className="h-10 bg-slate-100 rounded animate-pulse" />
             ))}
           </div>
-        ) : repairs.length === 0 ? (
+        ) : visible.length === 0 ? (
           <div className="text-center py-12 text-slate-500">
             <p className="text-lg font-medium">No repair requests found</p>
             <p className="text-sm mt-1">
-              {statusFilter ? 'Try a different filter.' : 'Click "New Repair Request" to create one.'}
+              {repairs.length ? 'Nothing in this stage right now.' : 'Click "New Repair Request" to create one.'}
             </p>
           </div>
         ) : (
@@ -492,26 +577,29 @@ export default function Repairs() {
               <tr className="bg-slate-50 border-b border-slate-200">
                 <th className="text-left px-4 py-3 font-semibold text-slate-600">Customer</th>
                 <th className="text-left px-4 py-3 font-semibold text-slate-600">Device Model</th>
-                <th className="text-left px-4 py-3 font-semibold text-slate-600">Issue</th>
+                <th className="text-left px-4 py-3 font-semibold text-slate-600">Repair</th>
                 <th className="text-left px-4 py-3 font-semibold text-slate-600">Status</th>
                 <th className="text-left px-4 py-3 font-semibold text-slate-600">Est. Cost</th>
                 <th className="text-right px-4 py-3 font-semibold text-slate-600">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {repairs.map((repair) => (
+              {visible.map((repair) => (
                 <tr key={repair.id} className="hover:bg-slate-50 transition-colors">
-                  <td className="px-4 py-3">
+                  <td className={`px-4 py-3 border-l-4 ${stageOf(repair.status).bar}`}>
                     <span className="font-medium text-slate-800">
                       Customer #{repair.customer_id}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-slate-700 font-medium">{repair.device_model}</td>
-                  <td className="px-4 py-3 max-w-[240px]">
-                    <IssueCell text={repair.issue_description} />
+                  <td className="px-4 py-3 max-w-[260px]">
+                    {repair.repair_type && (
+                      <div className="font-medium text-slate-800">{repair.repair_type}</div>
+                    )}
+                    {repair.issue_description && <IssueCell text={repair.issue_description} />}
                   </td>
                   <td className="px-4 py-3">
-                    <StatusBadge status={repair.status} />
+                    <RepairStatusBadge status={repair.status} />
                   </td>
                   <td className="px-4 py-3">
                     <InlineCost

@@ -155,7 +155,8 @@ async def create_repair(
     repair = RepairRequest(
         customer_id=customer.id,
         device_model=body.device_model,
-        issue_description=body.issue_description,
+        repair_type=(body.repair_type or "").strip() or None,
+        issue_description=body.issue_description.strip(),
         estimated_cost=body.estimated_cost,
         status="Pending",
         notes=body.notes,
@@ -200,6 +201,8 @@ async def update_repair(
         repair.estimated_cost = body.estimated_cost
     if body.notes is not None:
         repair.notes = body.notes
+    if body.repair_type is not None:
+        repair.repair_type = body.repair_type.strip() or None
 
     repair.updated_at = datetime.now(timezone.utc).replace(tzinfo=None)
     await db.commit()

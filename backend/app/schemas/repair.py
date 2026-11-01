@@ -22,7 +22,8 @@ class RepairRequestCreate(BaseModel):
 
     # Repair fields
     device_model: str
-    issue_description: str
+    repair_type: Optional[str] = None
+    issue_description: str = ""
     estimated_cost: float = 0.0
     notes: Optional[str] = None
 
@@ -49,11 +50,14 @@ class RepairRequestCreate(BaseModel):
             raise ValueError(
                 "phone_number is required when creating a new customer."
             )
+        if not (self.repair_type or "").strip() and not self.issue_description.strip():
+            raise ValueError("Choose what needs fixing or describe the issue.")
         return self
 
 
 class RepairRequestUpdate(BaseModel):
     status: Optional[str] = None
+    repair_type: Optional[str] = None
     estimated_cost: Optional[float] = None
     notes: Optional[str] = None
 
@@ -79,6 +83,7 @@ class RepairRequestResponse(BaseModel):
     id: int
     customer_id: int
     device_model: str
+    repair_type: Optional[str] = None
     issue_description: str
     estimated_cost: float
     status: str

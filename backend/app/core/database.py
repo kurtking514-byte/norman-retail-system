@@ -29,6 +29,9 @@ async def init_db() -> None:
         async with engine.begin() as conn:
             for column in ("brand_id", "category_id", "model_number", "cost_price", "selling_price"):
                 await conn.exec_driver_sql(f"ALTER TABLE products ALTER COLUMN {column} DROP NOT NULL")
+            await conn.exec_driver_sql(
+                "ALTER TABLE repair_requests ADD COLUMN IF NOT EXISTS repair_type VARCHAR(100)"
+            )
 
 
 async_session_factory = async_sessionmaker(
