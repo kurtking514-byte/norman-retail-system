@@ -47,7 +47,8 @@ export default function Login() {
     <div className="min-h-screen bg-stone-100 flex flex-col">
       <ShopBanner tagline="Retailer of authentic mobile phones and accessories" />
       <div className="flex-1 flex items-start sm:items-center justify-center px-4 py-10">
-        <div className="w-full max-w-sm bg-white rounded-lg border border-stone-200 shadow-sm">
+        <div className="w-full max-w-sm bg-white rounded-lg border border-stone-200 shadow-sm overflow-hidden">
+          <div className="weave h-3" />
           <div className="p-6 sm:p-8">
             <h1 className="mb-5 text-2xl text-stone-900">Staff sign in</h1>
 
