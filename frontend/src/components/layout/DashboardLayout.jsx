@@ -13,9 +13,9 @@ export default function DashboardLayout({ children }) {
   };
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex h-screen overflow-hidden">
       <Sidebar />
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-w-0">
         {/* Top bar */}
         <header className="bg-white border-b border-slate-200 px-6 py-3 flex items-center justify-between shadow-sm">
           <div className="text-sm text-slate-500">
@@ -36,7 +36,7 @@ export default function DashboardLayout({ children }) {
         </header>
 
         {/* Page content */}
-        <main className="flex-1 p-6 overflow-auto">
+        <main className="flex-1 min-h-0 p-6 overflow-auto">
           {children}
         </main>
       </div>

@@ -439,6 +439,12 @@ export default function Repairs() {
         </button>
       </div>
 
+      {/* In-development notice */}
+      <div className="mb-4 px-4 py-3 bg-amber-50 border border-amber-200 text-amber-800 text-sm rounded-lg">
+        <span className="font-semibold">In development:</span> repair tracking works, but
+        photo-based damage assessment and AI repair quotes are still being built.
+      </div>
+
       {/* Error banner */}
       {error && (
         <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg flex items-center justify-between">

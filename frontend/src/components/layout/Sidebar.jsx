@@ -4,14 +4,14 @@ const navItems = [
   { label: 'Dashboard', path: '/dashboard', enabled: true },
   { label: 'Inventory', path: '/inventory', enabled: true },
   { label: 'Reservations', path: '/reservations', enabled: true },
-  { label: 'Repairs', path: '/repairs', enabled: true },
+  { label: 'Repairs', path: '/repairs', enabled: true, badge: 'In development' },
   { label: 'Live Chat', path: '/live-chat', enabled: true },
   { label: 'Settings', path: '#', enabled: false },
 ];
 
 export default function Sidebar() {
   return (
-    <aside className="w-64 bg-slate-800 text-white flex flex-col min-h-screen">
+    <aside className="w-64 flex-shrink-0 bg-slate-800 text-white flex flex-col h-full overflow-y-auto">
       {/* Brand */}
       <div className="px-6 py-5 border-b border-slate-700">
         <h1 className="text-lg font-bold tracking-tight">
@@ -36,6 +36,11 @@ export default function Sidebar() {
               }
             >
               {item.label}
+              {item.badge && (
+                <span className="ml-auto text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-amber-400/20 text-amber-300">
+                  {item.badge}
+                </span>
+              )}
             </NavLink>
           ) : (
             <span
@@ -51,7 +56,7 @@ export default function Sidebar() {
 
       {/* Footer */}
       <div className="px-6 py-4 border-t border-slate-700 text-xs text-slate-500">
-        v1.0 &middot; Phase 3
+        v1.0
       </div>
     </aside>
   );

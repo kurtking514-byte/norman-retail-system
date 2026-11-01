@@ -90,7 +90,7 @@ function MessageBubble({ message }) {
 
   return (
     <div className={`flex ${alignClass}`}>
-      <div className={`max-w-[70%] rounded-xl px-4 py-2.5 text-sm ${bubbleClass}`}>
+      <div className={`max-w-[70%] rounded-xl px-4 py-2.5 text-sm break-words [overflow-wrap:anywhere] ${bubbleClass}`}>
         <div className="text-xs font-medium mb-0.5 opacity-70">{label}</div>
         <p>{message.message_text}</p>
         <div className={`text-xs mt-1 ${message.speaker === 'User' ? 'text-blue-200' : 'text-slate-400'}`}>
@@ -145,7 +145,7 @@ function CustomerProfile({ customerId, customerName }) {
   );
 
   return (
-    <div className="w-72 border-l border-slate-200 flex flex-col bg-slate-50">
+    <div className="w-72 flex-shrink-0 border-l border-slate-200 flex flex-col bg-slate-50 min-h-0">
       <div className="px-4 py-3 border-b border-slate-200">
         <h3 className="text-sm font-semibold text-slate-700">Customer Profile</h3>
       </div>
@@ -162,7 +162,7 @@ function CustomerProfile({ customerId, customerName }) {
           <div className="h-10 bg-slate-200 rounded animate-pulse w-full" />
         </div>
       ) : (
-        <div className="flex-1 overflow-y-auto p-4 space-y-5 text-sm">
+        <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-5 text-sm">
           {/* Customer name & ID */}
           <div>
             <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">
@@ -647,7 +647,7 @@ export default function LiveChat() {
   // ======================================================================
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full min-h-0">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
@@ -693,11 +693,11 @@ export default function LiveChat() {
       )}
 
       {/* Chat layout — three columns */}
-      <div className="flex flex-1 bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm min-h-[500px]">
+      <div className="flex flex-1 min-h-0 bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
         {/* ============================================================ */}
         {/* Conversation list — left column                             */}
         {/* ============================================================ */}
-        <div className="w-80 border-r border-slate-200 flex flex-col">
+        <div className="w-80 flex-shrink-0 border-r border-slate-200 flex flex-col min-h-0">
           <div className="px-4 py-3 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
             <h3 className="text-sm font-semibold text-slate-700">
               Conversations
@@ -723,7 +723,7 @@ export default function LiveChat() {
               {refreshing ? '' : 'Refresh'}
             </button>
           </div>
-          <div className="flex-1 overflow-y-auto divide-y divide-slate-100">
+          <div className="flex-1 min-h-0 overflow-y-auto divide-y divide-slate-100">
             {filteredThreads.length === 0 ? (
               <div className="p-6 text-center text-sm text-slate-400">
                 {needsAttentionOnly
@@ -746,7 +746,7 @@ export default function LiveChat() {
         {/* ============================================================ */}
         {/* Message thread — center column                              */}
         {/* ============================================================ */}
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col min-w-0 min-h-0">
           {selectedUserId && selectedThread ? (
             <>
               {/* Thread header */}
@@ -823,7 +823,7 @@ export default function LiveChat() {
               </div>
 
               {/* Messages */}
-              <div className="flex-1 overflow-y-auto p-6 space-y-4">
+              <div className="flex-1 min-h-0 overflow-y-auto p-6 space-y-4">
                 {messagesLoading ? (
                   <div className="space-y-4">
                     {[1, 2, 3].map((i) => (

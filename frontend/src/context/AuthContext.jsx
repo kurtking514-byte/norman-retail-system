@@ -3,26 +3,31 @@ import { login as authLogin, logout as authLogout, getToken, isAuthenticated } f
 
 const AuthContext = createContext(null);
 
-export function AuthProvider({ children }) {
-  const [token, setToken] = useState(null);
-  const [user, setUser] = useState(null);
+// The token has a "sub" claim containing the username
+function decodeUsername(token) {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.sub || 'Admin';
+  } catch {
+    return null;
+  }
+}
 
-  // On mount, restore session from localStorage if a token exists
-  useEffect(() => {
+export function AuthProvider({ children }) {
+  // Restore the session synchronously so protected routes don't redirect to
+  // /login on a page refresh before the stored token has been read.
+  const [token, setToken] = useState(() => {
     const storedToken = getToken();
-    if (storedToken) {
-      setToken(storedToken);
-      // The token has a "sub" claim containing the username
-      try {
-        const payload = JSON.parse(atob(storedToken.split('.')[1]));
-        setUser({ username: payload.sub || 'Admin' });
-      } catch {
-        // If token is malformed, clear it
-        authLogout();
-        setToken(null);
-      }
+    return storedToken && decodeUsername(storedToken) ? storedToken : null;
+  });
+  const [user, setUser] = useState(() => (token ? { username: decodeUsername(token) } : null));
+
+  useEffect(() => {
+    if (!token && getToken()) {
+      // Stored token was malformed — clear it
+      authLogout();
     }
-  }, []);
+  }, [token]);
 
   const login = useCallback(async (username, password) => {
     const newToken = await authLogin(username, password);

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 export default function Login() {
@@ -15,8 +15,7 @@ export default function Login() {
   // If already authenticated, redirect away
   if (isAuthenticated) {
     const from = location.state?.from?.pathname || '/dashboard';
-    navigate(from, { replace: true });
-    return null;
+    return <Navigate to={from} replace />;
   }
 
   const handleSubmit = async (e) => {
