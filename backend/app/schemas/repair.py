@@ -82,6 +82,7 @@ class RepairRequestResponse(BaseModel):
 
     id: int
     customer_id: int
+    customer_name: Optional[str] = None
     device_model: str
     repair_type: Optional[str] = None
     issue_description: str

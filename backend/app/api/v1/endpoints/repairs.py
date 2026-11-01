@@ -15,6 +15,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.v1.endpoints.conversations import customer_display_name
 from app.core.database import get_db
 from app.core.security import get_current_admin
 from app.models.customer import Customer
@@ -103,6 +104,12 @@ async def _resolve_customer(
     return customer
 
 
+def _to_response(repair: RepairRequest, customer: Customer | None) -> RepairRequestResponse:
+    response = RepairRequestResponse.model_validate(repair)
+    response.customer_name = customer_display_name(customer) if customer else None
+    return response
+
+
 # ---------------------------------------------------------------------------
 # Routes
 # ---------------------------------------------------------------------------
@@ -113,21 +120,20 @@ async def list_repairs(
     status_filter: str | None = Query(None, alias="status"),
     customer_id: int | None = Query(None),
     skip: int = Query(0, ge=0),
-    limit: int = Query(20, ge=1, le=100),
+    limit: int = Query(500, ge=1, le=2000),
     admin: dict = Depends(get_current_admin),
     db: AsyncSession = Depends(get_db),
 ):
     """List repair requests, filterable by status and/or customer_id."""
-    stmt = select(RepairRequest)
+    stmt = select(RepairRequest, Customer).outerjoin(Customer, Customer.id == RepairRequest.customer_id)
     if status_filter is not None:
         stmt = stmt.where(RepairRequest.status == status_filter)
     if customer_id is not None:
         stmt = stmt.where(RepairRequest.customer_id == customer_id)
-    stmt = stmt.offset(skip).limit(limit)
+    stmt = stmt.order_by(RepairRequest.id.desc()).offset(skip).limit(limit)
 
     result = await db.execute(stmt)
-    repairs = result.scalars().all()
-    return [RepairRequestResponse.model_validate(r) for r in repairs]
+    return [_to_response(repair, customer) for repair, customer in result.all()]
 
 
 @router.post("/repairs", response_model=RepairRequestResponse, status_code=status.HTTP_201_CREATED)
@@ -165,7 +171,7 @@ async def create_repair(
     db.add(repair)
     await db.commit()
     await db.refresh(repair)
-    return RepairRequestResponse.model_validate(repair)
+    return _to_response(repair, customer)
 
 
 @router.put("/repairs/{repair_id}", response_model=RepairRequestResponse)
@@ -207,4 +213,4 @@ async def update_repair(
     repair.updated_at = datetime.now(timezone.utc).replace(tzinfo=None)
     await db.commit()
     await db.refresh(repair)
-    return RepairRequestResponse.model_validate(repair)
+    return _to_response(repair, await db.get(Customer, repair.customer_id))

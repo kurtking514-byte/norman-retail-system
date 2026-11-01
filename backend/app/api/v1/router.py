@@ -10,6 +10,7 @@ from app.api.v1.endpoints.conversations import router as conversations_router
 from app.api.v1.endpoints.notifications import router as notifications_router
 from app.api.v1.endpoints.ai_settings import router as ai_settings_router
 from app.api.v1.endpoints.catalog import router as catalog_router
+from app.api.v1.endpoints.customers import router as customers_router
 
 router = APIRouter(prefix="/api/v1")
 
@@ -23,3 +24,4 @@ router.include_router(conversations_router, prefix="")
 router.include_router(notifications_router, prefix="")
 router.include_router(ai_settings_router, prefix="")
 router.include_router(catalog_router, prefix="")
+router.include_router(customers_router, prefix="")

@@ -55,3 +55,21 @@ async def test_repair_type_saved_without_description(client):
 async def test_repair_needs_type_or_description(client):
     resp = await client.post("/api/v1/repairs", json={**NEW_CUSTOMER, "device_model": "Galaxy A55"})
     assert resp.status_code == 422
+
+
+async def test_customer_search_and_names_on_repairs(client):
+    created = await client.post("/api/v1/repairs", json={
+        "first_name": "Marisol", "last_name": "Dizon", "phone_number": "+63-917-555-0277",
+        "device_model": "iPhone 13", "repair_type": "Camera",
+    })
+    assert created.status_code == 201, created.text
+    assert created.json()["customer_name"] == "Marisol Dizon"
+
+    for q in ("marisol", "Marisol Diz", "dizon", "555-0277"):
+        found = (await client.get("/api/v1/customers", params={"q": q})).json()
+        assert any(c["id"] == created.json()["customer_id"] for c in found), q
+    assert (await client.get("/api/v1/customers", params={"q": "zzz-nobody"})).json() == []
+
+    listed = (await client.get("/api/v1/repairs")).json()
+    mine = next(r for r in listed if r["id"] == created.json()["id"])
+    assert mine["customer_name"] == "Marisol Dizon"

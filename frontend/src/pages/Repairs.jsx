@@ -54,11 +54,80 @@ function RepairStatusBadge({ status }) {
 }
 
 // ---------------------------------------------------------------------------
+// Customer search — type a name or phone number, pick from the matches
+// ---------------------------------------------------------------------------
+function CustomerPicker({ value, onChange }) {
+  const [query, setQuery] = useState('');
+  const [results, setResults] = useState([]);
+  const [searching, setSearching] = useState(false);
+
+  useEffect(() => {
+    if (value) return undefined;
+    const timer = setTimeout(async () => {
+      setSearching(true);
+      try {
+        const res = await api.get('/customers', { params: { q: query, limit: 8 } });
+        setResults(res.data);
+      } catch {
+        setResults([]);
+      } finally {
+        setSearching(false);
+      }
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [query, value]);
+
+  if (value) {
+    return (
+      <div className="flex items-center justify-between px-3 py-2 border border-blue-300 bg-blue-50 rounded-lg text-sm">
+        <div>
+          <div className="font-medium text-slate-800">{value.name || 'No name'}</div>
+          <div className="text-xs text-slate-500">{value.phone_number}</div>
+        </div>
+        <button type="button" onClick={() => onChange(null)} className="text-xs font-medium text-blue-600 hover:underline">
+          Change
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <input
+        autoFocus
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        placeholder="Search by name or phone number"
+        className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+      />
+      <div className="mt-1 max-h-48 overflow-y-auto rounded-lg border border-slate-200 divide-y divide-slate-100">
+        {results.map((c) => (
+          <button
+            key={c.id}
+            type="button"
+            onClick={() => onChange(c)}
+            className="w-full text-left px-3 py-2 hover:bg-slate-50"
+          >
+            <div className="text-sm font-medium text-slate-800">{c.name || 'No name'}</div>
+            <div className="text-xs text-slate-500">{c.phone_number}</div>
+          </button>
+        ))}
+        {!searching && results.length === 0 && (
+          <p className="px-3 py-2 text-xs text-slate-400">
+            No customer found. Choose "New Customer" to add them.
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // New Repair Request Modal
 // ---------------------------------------------------------------------------
 const emptyForm = {
   customerMode: 'existing',
-  customer_id: '',
+  customer: null,
   first_name: '',
   last_name: '',
   phone_number: '',
@@ -107,11 +176,11 @@ function NewRepairModal({ open, onClose, onCreated }) {
     };
 
     if (form.customerMode === 'existing') {
-      if (!form.customer_id) {
-        setError('Please enter a Customer ID.');
+      if (!form.customer) {
+        setError('Please pick a customer.');
         return;
       }
-      body.customer_id = parseInt(form.customer_id, 10);
+      body.customer_id = form.customer.id;
     } else {
       if (!form.first_name || !form.last_name || !form.phone_number) {
         setError('Please fill in all customer fields.');
@@ -248,21 +317,10 @@ function NewRepairModal({ open, onClose, onCreated }) {
             </div>
 
             {form.customerMode === 'existing' ? (
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Customer ID *</label>
-                <input
-                  name="customer_id"
-                  type="number"
-                  value={form.customer_id}
-                  onChange={handleChange}
-                  placeholder="Enter customer ID"
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <p className="text-xs text-slate-400 mt-1">
-                  {/* TODO: Replace with customer search when /customers endpoint exists */}
-                  Enter the numeric customer ID from the database.
-                </p>
-              </div>
+              <CustomerPicker
+                value={form.customer}
+                onChange={(customer) => setForm((prev) => ({ ...prev, customer }))}
+              />
             ) : (
               <div className="grid grid-cols-2 gap-3">
                 <div>
@@ -588,7 +646,7 @@ export default function Repairs() {
                 <tr key={repair.id} className="hover:bg-slate-50 transition-colors">
                   <td className={`px-4 py-3 border-l-4 ${stageOf(repair.status).bar}`}>
                     <span className="font-medium text-slate-800">
-                      Customer #{repair.customer_id}
+                      {repair.customer_name || `Customer #${repair.customer_id}`}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-slate-700 font-medium">{repair.device_model}</td>
