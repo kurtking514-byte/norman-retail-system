@@ -50,7 +50,7 @@ export default function Login() {
         <div className="w-full max-w-sm bg-white rounded-lg border border-stone-200 shadow-sm overflow-hidden">
           <div className="weave h-3" />
           <div className="p-6 sm:p-8">
-            <h1 className="mb-5 text-2xl text-stone-900">Staff sign in</h1>
+            <h1 className="mb-5 text-2xl text-center text-stone-900">Staff sign in</h1>
 
             {error && (
               <div className="mb-4 px-4 py-3 bg-brand-50 border border-brand-200 text-brand-800 text-sm rounded-md">
