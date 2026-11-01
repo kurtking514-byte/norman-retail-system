@@ -46,9 +46,9 @@ export default function AiSwitch() {
   return (
     <div className="flex items-center gap-3">
       {error && <span className="text-xs text-red-600">{error}</span>}
-      <span className="text-sm text-slate-600">
+      <span className="text-sm text-stone-600">
         AI chatbot:{' '}
-        <span className={`font-semibold ${enabled ? 'text-emerald-600' : 'text-red-600'}`}>
+        <span className={`font-semibold ${enabled ? 'text-terrace-600' : 'text-red-600'}`}>
           {enabled ? 'On' : 'Off'}
         </span>
       </span>
@@ -65,7 +65,7 @@ export default function AiSwitch() {
         onClick={toggle}
         disabled={saving}
         className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors disabled:opacity-50 ${
-          enabled ? 'bg-emerald-500' : 'bg-slate-300'
+          enabled ? 'bg-terrace-500' : 'bg-stone-300'
         }`}
       >
         <span

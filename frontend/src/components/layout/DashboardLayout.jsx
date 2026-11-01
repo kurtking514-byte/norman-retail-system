@@ -17,10 +17,10 @@ export default function DashboardLayout({ children }) {
       <Sidebar />
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top bar */}
-        <header className="bg-white border-b border-slate-200 px-6 py-3 flex items-center justify-between shadow-sm">
-          <div className="text-sm text-slate-500">
-            Welcome back,{' '}
-            <span className="font-semibold text-slate-800">
+        <header className="bg-white border-b border-stone-200 px-6 py-3 flex items-center justify-between">
+          <div className="text-sm text-stone-500">
+            Signed in as{' '}
+            <span className="font-semibold text-stone-800">
               {user?.username || 'Admin'}
             </span>
           </div>
@@ -28,9 +28,9 @@ export default function DashboardLayout({ children }) {
             <AiSwitch />
             <button
               onClick={handleLogout}
-              className="px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+              className="px-3 py-1.5 text-sm font-semibold text-stone-600 border border-stone-300 hover:border-stone-400 hover:text-stone-900 rounded-md transition-colors"
             >
-              Logout
+              Log out
             </button>
           </div>
         </header>

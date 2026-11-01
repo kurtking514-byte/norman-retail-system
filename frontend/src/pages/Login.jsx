@@ -39,81 +39,89 @@ export default function Login() {
     }
   };
 
+  const inputClass =
+    'w-full px-3 py-2.5 border border-stone-300 rounded-md text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500';
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center px-4">
-      <div className="w-full max-w-md">
-        {/* Logo / Brand */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white tracking-tight">
-            <span className="text-blue-400">Norman</span> Admin
-          </h1>
-          <p className="text-slate-400 mt-1 text-sm">
-            Cellphone Center &amp; Repair Shop
-          </p>
-        </div>
-
-        {/* Card */}
-        <div className="bg-white rounded-xl shadow-2xl p-8">
-          <h2 className="text-xl font-semibold text-slate-800 mb-6">Sign In</h2>
-
-          {error && (
-            <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg">
-              {error}
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="min-h-screen bg-stone-100 flex flex-col">
+      <div className="weave h-2" />
+      <div className="flex-1 flex items-center justify-center px-4 py-10">
+        <div className="w-full max-w-4xl grid md:grid-cols-2 bg-white rounded-lg border border-stone-200 shadow-xl overflow-hidden">
+          {/* Shop sign */}
+          <div className="bg-ink-900 p-6 sm:p-8 flex flex-col justify-between gap-6">
+            <img
+              src="/norman-logo.webp"
+              alt="Norman Cellphone Center & Accessories"
+              className="w-full rounded-md ring-1 ring-white/10"
+            />
             <div>
-              <label htmlFor="username" className="block text-sm font-medium text-slate-700 mb-1">
-                Username
-              </label>
-              <input
-                id="username"
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="admin"
-                autoFocus
-              />
+              <p className="font-display text-lg font-bold uppercase tracking-wide text-white">
+                Retailer of authentic mobile phones and accessories
+              </p>
+              <p className="mt-1 text-sm text-stone-400">Maddela Public Market, Maddela, Quirino</p>
             </div>
+          </div>
 
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-slate-700 mb-1">
-                Password
-              </label>
-              <input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="••••••••"
-              />
-            </div>
+          {/* Form */}
+          <div className="p-6 sm:p-10 flex flex-col justify-center">
+            <h1 className="text-3xl text-stone-900">Staff sign in</h1>
+            <p className="mt-1 mb-6 text-sm text-stone-500">Inventory, reservations, repairs and customer chats.</p>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className={`w-full py-2.5 px-4 rounded-lg text-sm font-semibold text-white transition-colors ${
-                loading
-                  ? 'bg-blue-400 cursor-not-allowed'
-                  : 'bg-blue-600 hover:bg-blue-700'
-              }`}
-            >
-              {loading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                  </svg>
-                  Signing in...
-                </span>
-              ) : (
-                'Sign In'
-              )}
-            </button>
-          </form>
+            {error && (
+              <div className="mb-4 px-4 py-3 bg-brand-50 border border-brand-200 text-brand-800 text-sm rounded-md">
+                {error}
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label htmlFor="username" className="block text-sm font-semibold text-stone-700 mb-1">
+                  Username
+                </label>
+                <input
+                  id="username"
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className={inputClass}
+                  autoComplete="username"
+                  autoFocus
+                />
+              </div>
+
+              <div>
+                <label htmlFor="password" className="block text-sm font-semibold text-stone-700 mb-1">
+                  Password
+                </label>
+                <input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className={inputClass}
+                  autoComplete="current-password"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-2.5 px-4 rounded-md text-sm font-semibold text-white bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 disabled:cursor-not-allowed transition-colors"
+              >
+                {loading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                    Signing in...
+                  </span>
+                ) : (
+                  'Sign in'
+                )}
+              </button>
+            </form>
+          </div>
         </div>
       </div>
     </div>

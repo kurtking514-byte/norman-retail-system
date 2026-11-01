@@ -46,19 +46,19 @@ function ConversationThread({ thread, isSelected, onSelect }) {
   return (
     <button
       onClick={() => onSelect(thread.messenger_user_id)}
-      className={`w-full text-left px-4 py-3 hover:bg-slate-50 transition-colors ${
-        isSelected ? 'bg-blue-50 border-l-2 border-blue-600' : ''
+      className={`w-full text-left px-4 py-3 hover:bg-stone-50 transition-colors ${
+        isSelected ? 'bg-brand-50 border-l-2 border-brand-600' : ''
       }`}
     >
       <div className="flex items-center justify-between mb-1">
-        <span className="text-sm font-medium text-slate-800 truncate">
+        <span className="text-sm font-medium text-stone-800 truncate">
           {thread.customer_name}
         </span>
-        <span className="text-xs text-slate-400 flex-shrink-0 ml-2">
+        <span className="text-xs text-stone-400 flex-shrink-0 ml-2">
           {formatDate(thread.last_message_timestamp)}
         </span>
       </div>
-      <p className="text-xs text-slate-500 truncate mb-1">
+      <p className="text-xs text-stone-500 truncate mb-1">
         {thread.last_message_text}
       </p>
       <div className="flex items-center gap-2">
@@ -79,22 +79,22 @@ function ConversationThread({ thread, isSelected, onSelect }) {
 
 function MessageBubble({ message }) {
   let alignClass = 'justify-start';
-  let bubbleClass = 'bg-slate-100 text-slate-700';
+  let bubbleClass = 'bg-stone-100 text-stone-700';
   let label = message.speaker;
 
   if (message.speaker === 'User') {
     alignClass = 'justify-end';
-    bubbleClass = 'bg-blue-600 text-white';
+    bubbleClass = 'bg-ink-800 text-white';
   } else if (message.speaker === 'Staff') {
-    bubbleClass = 'bg-slate-200 text-slate-700';
+    bubbleClass = 'bg-stone-200 text-stone-700';
   }
 
   return (
     <div className={`flex ${alignClass}`}>
-      <div className={`max-w-[70%] rounded-xl px-4 py-2.5 text-sm break-words [overflow-wrap:anywhere] ${bubbleClass}`}>
+      <div className={`max-w-[70%] rounded-lg px-4 py-2.5 text-sm break-words [overflow-wrap:anywhere] ${bubbleClass}`}>
         <div className="text-xs font-medium mb-0.5 opacity-70">{label}</div>
         <p>{message.message_text}</p>
-        <div className={`text-xs mt-1 ${message.speaker === 'User' ? 'text-blue-200' : 'text-slate-400'}`}>
+        <div className="text-xs mt-1 text-stone-400">
           {formatTime(message.timestamp)}
         </div>
       </div>
@@ -146,53 +146,53 @@ function CustomerProfile({ customerId, customerName }) {
   );
 
   return (
-    <div className="w-72 flex-shrink-0 border-l border-slate-200 flex flex-col bg-slate-50 min-h-0">
-      <div className="px-4 py-3 border-b border-slate-200">
-        <h3 className="text-sm font-semibold text-slate-700">Customer Profile</h3>
+    <div className="w-72 flex-shrink-0 border-l border-stone-200 flex flex-col bg-stone-50 min-h-0">
+      <div className="px-4 py-3 border-b border-stone-200">
+        <h3 className="text-sm font-semibold text-stone-700">Customer Profile</h3>
       </div>
 
       {!customerId ? (
-        <div className="flex-1 flex items-center justify-center text-slate-400 text-sm p-4 text-center">
+        <div className="flex-1 flex items-center justify-center text-stone-400 text-sm p-4 text-center">
           Select a conversation to view customer details.
         </div>
       ) : loading ? (
         <div className="flex-1 p-4 space-y-3">
-          <div className="h-4 bg-slate-200 rounded animate-pulse w-3/4" />
-          <div className="h-4 bg-slate-200 rounded animate-pulse w-1/2" />
-          <div className="h-10 bg-slate-200 rounded animate-pulse w-full" />
-          <div className="h-10 bg-slate-200 rounded animate-pulse w-full" />
+          <div className="h-4 bg-stone-200 rounded animate-pulse w-3/4" />
+          <div className="h-4 bg-stone-200 rounded animate-pulse w-1/2" />
+          <div className="h-10 bg-stone-200 rounded animate-pulse w-full" />
+          <div className="h-10 bg-stone-200 rounded animate-pulse w-full" />
         </div>
       ) : (
         <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-5 text-sm">
           {/* Customer name & ID */}
           <div>
-            <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">
+            <h4 className="text-xs font-semibold text-stone-500 uppercase tracking-wider mb-1">
               Customer
             </h4>
-            <p className="text-slate-800 font-medium">{customerName || 'Unknown'}</p>
-            <p className="text-slate-500 text-xs">ID: {customerId}</p>
+            <p className="text-stone-800 font-medium">{customerName || 'Unknown'}</p>
+            <p className="text-stone-500 text-xs">ID: {customerId}</p>
           </div>
 
           {/* Active Reservations */}
           <div>
-            <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">
+            <h4 className="text-xs font-semibold text-stone-500 uppercase tracking-wider mb-1">
               Reservations
               {activeReservations.length > 0 && (
-                <span className="ml-1.5 text-blue-600 font-normal">
+                <span className="ml-1.5 text-brand-600 font-normal">
                   ({activeReservations.length})
                 </span>
               )}
             </h4>
             {activeReservations.length === 0 ? (
-              <p className="text-slate-400 italic text-xs">No active reservations</p>
+              <p className="text-stone-400 italic text-xs">No active reservations</p>
             ) : (
               <ul className="space-y-1.5">
                 {activeReservations.map((r) => (
-                  <li key={r.id} className="bg-white rounded border border-slate-200 px-2.5 py-2">
-                    <p className="text-xs font-medium text-slate-700">Reservation #{r.id}</p>
-                    <p className="text-xs text-slate-500">Status: {r.status}</p>
+                  <li key={r.id} className="bg-white rounded border border-stone-200 px-2.5 py-2">
+                    <p className="text-xs font-medium text-stone-700">Reservation #{r.id}</p>
+                    <p className="text-xs text-stone-500">Status: {r.status}</p>
                     {r.notes && (
-                      <p className="text-xs text-slate-400 truncate mt-0.5">{r.notes}</p>
+                      <p className="text-xs text-stone-400 truncate mt-0.5">{r.notes}</p>
                     )}
                   </li>
                 ))}
@@ -202,7 +202,7 @@ function CustomerProfile({ customerId, customerName }) {
 
           {/* Active Repair Tickets */}
           <div>
-            <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">
+            <h4 className="text-xs font-semibold text-stone-500 uppercase tracking-wider mb-1">
               Repair Tickets
               {activeRepairs.length > 0 && (
                 <span className="ml-1.5 text-amber-600 font-normal">
@@ -211,15 +211,15 @@ function CustomerProfile({ customerId, customerName }) {
               )}
             </h4>
             {activeRepairs.length === 0 ? (
-              <p className="text-slate-400 italic text-xs">No active repairs</p>
+              <p className="text-stone-400 italic text-xs">No active repairs</p>
             ) : (
               <ul className="space-y-1.5">
                 {activeRepairs.map((r) => (
-                  <li key={r.id} className="bg-white rounded border border-slate-200 px-2.5 py-2">
-                    <p className="text-xs font-medium text-slate-700">{r.device_model}</p>
-                    <p className="text-xs text-slate-500">Status: {r.status}</p>
+                  <li key={r.id} className="bg-white rounded border border-stone-200 px-2.5 py-2">
+                    <p className="text-xs font-medium text-stone-700">{r.device_model}</p>
+                    <p className="text-xs text-stone-500">Status: {r.status}</p>
                     {r.estimated_cost && Number(r.estimated_cost) > 0 && (
-                      <p className="text-xs text-slate-500">
+                      <p className="text-xs text-stone-500">
                         Est. Cost: ₱{Number(r.estimated_cost).toLocaleString()}
                       </p>
                     )}
@@ -652,8 +652,8 @@ export default function LiveChat() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">Live Chat</h1>
-          <p className="text-sm text-slate-500 mt-0.5">
+          <h1 className="text-2xl font-bold text-stone-800">Live Chat</h1>
+          <p className="text-sm text-stone-500 mt-0.5">
             Monitor conversations and handle handoffs
           </p>
         </div>
@@ -661,24 +661,24 @@ export default function LiveChat() {
           {/* Connection status indicator */}
           <span
             className={`inline-flex items-center gap-1.5 text-xs font-medium ${
-              sseConnected ? 'text-emerald-600' : 'text-slate-400'
+              sseConnected ? 'text-terrace-600' : 'text-stone-400'
             }`}
           >
             <span
               className={`w-2 h-2 rounded-full ${
                 sseConnected
-                  ? 'bg-emerald-500 animate-pulse'
-                  : 'bg-slate-300'
+                  ? 'bg-terrace-500 animate-pulse'
+                  : 'bg-stone-300'
               }`}
             />
             {sseConnected ? 'Live' : 'Reconnecting...'}
           </span>
-        <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
+        <label className="flex items-center gap-2 text-sm text-stone-600 cursor-pointer">
           <input
             type="checkbox"
             checked={needsAttentionOnly}
             onChange={() => setNeedsAttentionOnly(!needsAttentionOnly)}
-            className="text-blue-600 rounded"
+            className="text-brand-600 rounded"
           />
           Needs Attention
         </label>
@@ -694,22 +694,22 @@ export default function LiveChat() {
       )}
 
       {/* Chat layout — three columns */}
-      <div className="flex flex-1 min-h-0 bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+      <div className="flex flex-1 min-h-0 bg-white rounded-lg border border-stone-200 overflow-hidden shadow-sm">
         {/* ============================================================ */}
         {/* Conversation list — left column                             */}
         {/* ============================================================ */}
-        <div className="w-80 flex-shrink-0 border-r border-slate-200 flex flex-col min-h-0">
-          <div className="px-4 py-3 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-slate-700">
+        <div className="w-80 flex-shrink-0 border-r border-stone-200 flex flex-col min-h-0">
+          <div className="px-4 py-3 border-b border-stone-200 bg-stone-50 flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-stone-700">
               Conversations
-              <span className="ml-2 text-xs font-normal text-slate-400">
+              <span className="ml-2 text-xs font-normal text-stone-400">
                 ({filteredThreads.length})
               </span>
             </h3>
             <button
               onClick={handleRefresh}
               disabled={refreshing}
-              className="text-xs text-slate-500 hover:text-blue-600 disabled:text-slate-300 transition-colors px-2 py-0.5 rounded flex items-center gap-1"
+              className="text-xs text-stone-500 hover:text-brand-600 disabled:text-stone-300 transition-colors px-2 py-0.5 rounded flex items-center gap-1"
               title="Refresh conversation list"
             >
               <svg
@@ -724,9 +724,9 @@ export default function LiveChat() {
               {refreshing ? '' : 'Refresh'}
             </button>
           </div>
-          <div className="flex-1 min-h-0 overflow-y-auto divide-y divide-slate-100">
+          <div className="flex-1 min-h-0 overflow-y-auto divide-y divide-stone-100">
             {filteredThreads.length === 0 ? (
-              <div className="p-6 text-center text-sm text-slate-400">
+              <div className="p-6 text-center text-sm text-stone-400">
                 {needsAttentionOnly
                   ? 'No conversations need attention.'
                   : 'No conversations yet.'}
@@ -751,10 +751,10 @@ export default function LiveChat() {
           {selectedUserId && selectedThread ? (
             <>
               {/* Thread header */}
-              <div className="px-6 py-3 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
+              <div className="px-6 py-3 border-b border-stone-200 bg-stone-50 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div>
-                    <h3 className="text-sm font-semibold text-slate-800">
+                    <h3 className="text-sm font-semibold text-stone-800">
                       {selectedThread.customer_name}
                     </h3>
                     {selectedThread.unread_handoff && (
@@ -771,7 +771,7 @@ export default function LiveChat() {
                     className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
                       threadState === 'HUMAN_CONTROLLED'
                         ? 'bg-amber-100 text-amber-700 hover:bg-amber-200 border border-amber-300'
-                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-300'
+                        : 'bg-stone-100 text-stone-600 hover:bg-stone-200 border border-stone-300'
                     } disabled:opacity-50 disabled:cursor-not-allowed`}
                     title={
                       threadState === 'HUMAN_CONTROLLED'
@@ -792,7 +792,7 @@ export default function LiveChat() {
                       className={`flex items-center gap-1.5 text-xs cursor-pointer select-none px-2 py-1 rounded border ${
                         threadStatePinned
                           ? 'bg-purple-50 border-purple-300 text-purple-700'
-                          : 'bg-slate-50 border-slate-300 text-slate-500'
+                          : 'bg-stone-50 border-stone-300 text-stone-500'
                       }`}
                       title={
                         threadStatePinned
@@ -815,7 +815,7 @@ export default function LiveChat() {
                   {notificationId && (
                     <button
                       onClick={handleMarkResolved}
-                      className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium rounded-lg transition-colors"
+                      className="px-3 py-1.5 bg-terrace-600 hover:bg-terrace-700 text-white text-xs font-medium rounded-lg transition-colors"
                     >
                       Mark Resolved
                     </button>
@@ -829,12 +829,12 @@ export default function LiveChat() {
                   <div className="space-y-4">
                     {[1, 2, 3].map((i) => (
                       <div key={i} className="flex justify-start">
-                        <div className="w-2/3 h-14 bg-slate-100 rounded-xl animate-pulse" />
+                        <div className="w-2/3 h-14 bg-stone-100 rounded-lg animate-pulse" />
                       </div>
                     ))}
                   </div>
                 ) : messages.length === 0 ? (
-                  <div className="flex items-center justify-center h-full text-slate-400 text-sm">
+                  <div className="flex items-center justify-center h-full text-stone-400 text-sm">
                     No messages in this thread yet.
                   </div>
                 ) : (
@@ -846,7 +846,7 @@ export default function LiveChat() {
               </div>
 
               {/* Reply input */}
-              <div className="px-6 py-3 border-t border-slate-200 bg-slate-50">
+              <div className="px-6 py-3 border-t border-stone-200 bg-stone-50">
                 <div className="flex items-center gap-2">
                   <input
                     type="text"
@@ -855,15 +855,15 @@ export default function LiveChat() {
                     onKeyDown={handleReplyKeyDown}
                     placeholder="Type your reply..."
                     disabled={sending}
-                    className="flex-1 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white disabled:bg-slate-100 disabled:cursor-not-allowed"
+                    className="flex-1 px-3 py-2 border border-stone-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white disabled:bg-stone-100 disabled:cursor-not-allowed"
                   />
                   <button
                     onClick={handleSendReply}
                     disabled={sending || !replyText.trim()}
                     className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
                       sending || !replyText.trim()
-                        ? 'bg-slate-300 text-white cursor-not-allowed'
-                        : 'bg-blue-600 hover:bg-blue-700 text-white'
+                        ? 'bg-stone-300 text-white cursor-not-allowed'
+                        : 'bg-brand-600 hover:bg-brand-700 text-white'
                     }`}
                   >
                     {sending ? 'Sending...' : 'Send'}
@@ -872,7 +872,7 @@ export default function LiveChat() {
               </div>
             </>
           ) : (
-            <div className="flex-1 flex items-center justify-center text-slate-400">
+            <div className="flex-1 flex items-center justify-center text-stone-400">
               <div className="text-center">
                 <p className="text-lg font-medium mb-1">Select a conversation</p>
                 <p className="text-sm">Choose a thread from the left panel to view messages.</p>

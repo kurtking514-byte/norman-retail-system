@@ -26,9 +26,9 @@ const STAGES = [
   { key: 'repairing', label: 'Being repaired', statuses: ['Diagnosis', 'In Progress'],
     badge: 'bg-blue-100 text-blue-800', bar: 'border-l-blue-500', dot: 'bg-blue-500' },
   { key: 'done', label: 'Done', statuses: ['Ready for Pickup', 'Released', 'Completed'],
-    badge: 'bg-emerald-100 text-emerald-800', bar: 'border-l-emerald-500', dot: 'bg-emerald-500' },
+    badge: 'bg-terrace-100 text-terrace-800', bar: 'border-l-terrace-500', dot: 'bg-terrace-500' },
   { key: 'cancelled', label: 'Cancelled', statuses: ['Cancelled'],
-    badge: 'bg-slate-100 text-slate-500', bar: 'border-l-slate-300', dot: 'bg-slate-400' },
+    badge: 'bg-stone-100 text-stone-500', bar: 'border-l-stone-300', dot: 'bg-stone-400' },
 ];
 
 const stageOf = (status) => STAGES.find((s) => s.statuses.includes(status)) || STAGES[0];
@@ -79,12 +79,12 @@ function CustomerPicker({ value, onChange }) {
 
   if (value) {
     return (
-      <div className="flex items-center justify-between px-3 py-2 border border-blue-300 bg-blue-50 rounded-lg text-sm">
+      <div className="flex items-center justify-between px-3 py-2 border border-brand-300 bg-brand-50 rounded-lg text-sm">
         <div>
-          <div className="font-medium text-slate-800">{value.name || 'No name'}</div>
-          <div className="text-xs text-slate-500">{value.phone_number}</div>
+          <div className="font-medium text-stone-800">{value.name || 'No name'}</div>
+          <div className="text-xs text-stone-500">{value.phone_number}</div>
         </div>
-        <button type="button" onClick={() => onChange(null)} className="text-xs font-medium text-blue-600 hover:underline">
+        <button type="button" onClick={() => onChange(null)} className="text-xs font-medium text-brand-600 hover:underline">
           Change
         </button>
       </div>
@@ -98,22 +98,22 @@ function CustomerPicker({ value, onChange }) {
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder="Search by name or phone number"
-        className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
       />
-      <div className="mt-1 max-h-48 overflow-y-auto rounded-lg border border-slate-200 divide-y divide-slate-100">
+      <div className="mt-1 max-h-48 overflow-y-auto rounded-lg border border-stone-200 divide-y divide-stone-100">
         {results.map((c) => (
           <button
             key={c.id}
             type="button"
             onClick={() => onChange(c)}
-            className="w-full text-left px-3 py-2 hover:bg-slate-50"
+            className="w-full text-left px-3 py-2 hover:bg-stone-50"
           >
-            <div className="text-sm font-medium text-slate-800">{c.name || 'No name'}</div>
-            <div className="text-xs text-slate-500">{c.phone_number}</div>
+            <div className="text-sm font-medium text-stone-800">{c.name || 'No name'}</div>
+            <div className="text-xs text-stone-500">{c.phone_number}</div>
           </button>
         ))}
         {!searching && results.length === 0 && (
-          <p className="px-3 py-2 text-xs text-slate-400">
+          <p className="px-3 py-2 text-xs text-stone-400">
             No customer found. Choose "New Customer" to add them.
           </p>
         )}
@@ -217,10 +217,10 @@ function NewRepairModal({ open, onClose, onCreated }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
-        <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-slate-800">New Repair Request</h2>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 text-xl leading-none">&times;</button>
+      <div className="bg-white rounded-lg shadow-2xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
+        <div className="px-6 py-4 border-b border-stone-200 flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-stone-800">New Repair Request</h2>
+          <button onClick={onClose} className="text-stone-400 hover:text-stone-600 text-xl leading-none">&times;</button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
@@ -232,23 +232,23 @@ function NewRepairModal({ open, onClose, onCreated }) {
 
           {/* Device info */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Device Model *</label>
+            <label className="block text-sm font-medium text-stone-700 mb-1">Device Model *</label>
             <input
               name="device_model"
               value={form.device_model}
               onChange={handleChange}
               placeholder="e.g. iPhone 15 Pro Max"
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">What needs fixing *</label>
+            <label className="block text-sm font-medium text-stone-700 mb-1">What needs fixing *</label>
             <select
               name="repair_type"
               value={form.repair_type}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand-500"
             >
               <option value="">Choose…</option>
               {REPAIR_TYPES.map((t) => (
@@ -258,8 +258,8 @@ function NewRepairModal({ open, onClose, onCreated }) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Details {form.repair_type ? <span className="font-normal text-slate-400">(optional)</span> : '*'}
+            <label className="block text-sm font-medium text-stone-700 mb-1">
+              Details {form.repair_type ? <span className="font-normal text-stone-400">(optional)</span> : '*'}
             </label>
             <textarea
               name="issue_description"
@@ -267,14 +267,14 @@ function NewRepairModal({ open, onClose, onCreated }) {
               value={form.issue_description}
               onChange={handleChange}
               placeholder={form.repair_type === 'Other' ? 'Describe the problem...' : 'Anything else the technician should know...'}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Estimated Cost</label>
+            <label className="block text-sm font-medium text-stone-700 mb-1">Estimated Cost</label>
             <div className="relative">
-              <span className="absolute left-3 top-2.5 text-slate-500 text-sm">₱</span>
+              <span className="absolute left-3 top-2.5 text-stone-500 text-sm">₱</span>
               <input
                 name="estimated_cost"
                 type="number"
@@ -283,14 +283,14 @@ function NewRepairModal({ open, onClose, onCreated }) {
                 value={form.estimated_cost}
                 onChange={handleChange}
                 placeholder="0.00"
-                className="w-full pl-8 pr-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full pl-8 pr-3 py-2 border border-stone-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
               />
             </div>
           </div>
 
           {/* Customer mode toggle */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Customer</label>
+            <label className="block text-sm font-medium text-stone-700 mb-2">Customer</label>
             <div className="flex gap-4 mb-3">
               <label className="flex items-center gap-2 text-sm">
                 <input
@@ -299,7 +299,7 @@ function NewRepairModal({ open, onClose, onCreated }) {
                   value="existing"
                   checked={form.customerMode === 'existing'}
                   onChange={handleChange}
-                  className="text-blue-600"
+                  className="text-brand-600"
                 />
                 Existing Customer
               </label>
@@ -310,7 +310,7 @@ function NewRepairModal({ open, onClose, onCreated }) {
                   value="new"
                   checked={form.customerMode === 'new'}
                   onChange={handleChange}
-                  className="text-blue-600"
+                  className="text-brand-600"
                 />
                 New Customer
               </label>
@@ -324,31 +324,31 @@ function NewRepairModal({ open, onClose, onCreated }) {
             ) : (
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">First Name *</label>
+                  <label className="block text-sm font-medium text-stone-700 mb-1">First Name *</label>
                   <input
                     name="first_name"
                     value={form.first_name}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Last Name *</label>
+                  <label className="block text-sm font-medium text-stone-700 mb-1">Last Name *</label>
                   <input
                     name="last_name"
                     value={form.last_name}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                   />
                 </div>
                 <div className="col-span-2">
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Phone Number *</label>
+                  <label className="block text-sm font-medium text-stone-700 mb-1">Phone Number *</label>
                   <input
                     name="phone_number"
                     value={form.phone_number}
                     onChange={handleChange}
                     placeholder="+63-xxx-xxx-xxxx"
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                   />
                 </div>
               </div>
@@ -359,7 +359,7 @@ function NewRepairModal({ open, onClose, onCreated }) {
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors"
+              className="px-4 py-2 text-sm font-medium text-stone-700 bg-stone-100 hover:bg-stone-200 rounded-lg transition-colors"
             >
               Cancel
             </button>
@@ -367,7 +367,7 @@ function NewRepairModal({ open, onClose, onCreated }) {
               type="submit"
               disabled={submitting}
               className={`px-4 py-2 text-sm font-semibold text-white rounded-lg transition-colors ${
-                submitting ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
+                submitting ? 'bg-brand-400 cursor-not-allowed' : 'bg-brand-600 hover:bg-brand-700'
               }`}
             >
               {submitting ? 'Creating...' : 'Create Repair Request'}
@@ -408,7 +408,7 @@ function InlineCost({ value, onSave }) {
   if (editing) {
     return (
       <div className="relative inline-flex items-center">
-        <span className="absolute left-2 text-slate-500 text-xs">₱</span>
+        <span className="absolute left-2 text-stone-500 text-xs">₱</span>
         <input
           type="number"
           step="0.01"
@@ -418,7 +418,7 @@ function InlineCost({ value, onSave }) {
           onBlur={handleSave}
           onKeyDown={handleKeyDown}
           autoFocus
-          className="w-24 pl-5 pr-2 py-1 text-xs border border-blue-400 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+          className="w-24 pl-5 pr-2 py-1 text-xs border border-brand-400 rounded-md focus:outline-none focus:ring-1 focus:ring-brand-500"
         />
       </div>
     );
@@ -427,7 +427,7 @@ function InlineCost({ value, onSave }) {
   return (
     <button
       onClick={() => setEditing(true)}
-      className="text-sm text-slate-700 hover:text-blue-600 hover:underline cursor-pointer text-left"
+      className="text-sm text-stone-700 hover:text-brand-600 hover:underline cursor-pointer text-left"
       title="Click to edit"
     >
       {peso.format(Number(value))}
@@ -464,7 +464,7 @@ function RepairStatusDropdown({ currentStatus, onChange }) {
     <select
       onChange={handleChange}
       defaultValue=""
-      className="px-2 py-1 text-xs border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white"
+      className="px-2 py-1 text-xs border border-stone-300 rounded-md focus:outline-none focus:ring-1 focus:ring-brand-500 bg-white"
     >
       <option value="" disabled>
         Change status...
@@ -488,7 +488,7 @@ function IssueCell({ text }) {
   return (
     <div className="relative">
       <span
-        className="text-slate-600 cursor-pointer hover:text-blue-600"
+        className="text-stone-600 cursor-pointer hover:text-brand-600"
         onClick={() => setExpanded(!expanded)}
         title={expanded ? 'Click to collapse' : 'Click to view full text'}
       >
@@ -563,14 +563,14 @@ export default function Repairs() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">Repairs</h1>
-          <p className="text-sm text-slate-500 mt-0.5">
+          <h1 className="text-2xl font-bold text-stone-800">Repairs</h1>
+          <p className="text-sm text-stone-500 mt-0.5">
             {loading ? 'Loading...' : `${repairs.length} repair${repairs.length !== 1 ? 's' : ''}`}
           </p>
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-colors shadow-sm"
+          className="px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-lg transition-colors shadow-sm"
         >
           + New Repair Request
         </button>
@@ -595,7 +595,7 @@ export default function Repairs() {
         <button
           onClick={() => setStageFilter('all')}
           className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
-            stageFilter === 'all' ? 'bg-slate-800 text-white border-slate-800' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+            stageFilter === 'all' ? 'bg-stone-800 text-white border-stone-800' : 'bg-white text-stone-600 border-stone-200 hover:bg-stone-50'
           }`}
         >
           All <span className="opacity-60">{repairs.length}</span>
@@ -605,7 +605,7 @@ export default function Repairs() {
             key={stage.key}
             onClick={() => setStageFilter(stage.key)}
             className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
-              stageFilter === stage.key ? `${stage.badge} border-transparent ring-2 ring-offset-1 ring-slate-300` : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+              stageFilter === stage.key ? `${stage.badge} border-transparent ring-2 ring-offset-1 ring-stone-300` : 'bg-white text-stone-600 border-stone-200 hover:bg-stone-50'
             }`}
           >
             <span className={`h-2 w-2 rounded-full ${stage.dot}`} />
@@ -615,15 +615,15 @@ export default function Repairs() {
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+      <div className="bg-white rounded-lg border border-stone-200 overflow-hidden shadow-sm">
         {loading ? (
           <div className="p-8 space-y-4">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-10 bg-slate-100 rounded animate-pulse" />
+              <div key={i} className="h-10 bg-stone-100 rounded animate-pulse" />
             ))}
           </div>
         ) : visible.length === 0 ? (
-          <div className="text-center py-12 text-slate-500">
+          <div className="text-center py-12 text-stone-500">
             <p className="text-lg font-medium">No repair requests found</p>
             <p className="text-sm mt-1">
               {repairs.length ? 'Nothing in this stage right now.' : 'Click "New Repair Request" to create one.'}
@@ -632,27 +632,27 @@ export default function Repairs() {
         ) : (
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-slate-50 border-b border-slate-200">
-                <th className="text-left px-4 py-3 font-semibold text-slate-600">Customer</th>
-                <th className="text-left px-4 py-3 font-semibold text-slate-600">Device Model</th>
-                <th className="text-left px-4 py-3 font-semibold text-slate-600">Repair</th>
-                <th className="text-left px-4 py-3 font-semibold text-slate-600">Status</th>
-                <th className="text-left px-4 py-3 font-semibold text-slate-600">Est. Cost</th>
-                <th className="text-right px-4 py-3 font-semibold text-slate-600">Actions</th>
+              <tr className="bg-stone-50 border-b border-stone-200">
+                <th className="text-left px-4 py-3 font-semibold text-stone-600">Customer</th>
+                <th className="text-left px-4 py-3 font-semibold text-stone-600">Device Model</th>
+                <th className="text-left px-4 py-3 font-semibold text-stone-600">Repair</th>
+                <th className="text-left px-4 py-3 font-semibold text-stone-600">Status</th>
+                <th className="text-left px-4 py-3 font-semibold text-stone-600">Est. Cost</th>
+                <th className="text-right px-4 py-3 font-semibold text-stone-600">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-stone-100">
               {visible.map((repair) => (
-                <tr key={repair.id} className="hover:bg-slate-50 transition-colors">
+                <tr key={repair.id} className="hover:bg-stone-50 transition-colors">
                   <td className={`px-4 py-3 border-l-4 ${stageOf(repair.status).bar}`}>
-                    <span className="font-medium text-slate-800">
+                    <span className="font-medium text-stone-800">
                       {repair.customer_name || `Customer #${repair.customer_id}`}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-slate-700 font-medium">{repair.device_model}</td>
+                  <td className="px-4 py-3 text-stone-700 font-medium">{repair.device_model}</td>
                   <td className="px-4 py-3 max-w-[260px]">
                     {repair.repair_type && (
-                      <div className="font-medium text-slate-800">{repair.repair_type}</div>
+                      <div className="font-medium text-stone-800">{repair.repair_type}</div>
                     )}
                     {repair.issue_description && <IssueCell text={repair.issue_description} />}
                   </td>

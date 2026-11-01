@@ -9,9 +9,9 @@ import api from '../../services/api';
  */
 
 const ACTION_STYLES = {
-  create: { label: 'New', className: 'bg-emerald-100 text-emerald-700' },
-  update: { label: 'Update', className: 'bg-blue-100 text-blue-700' },
-  unchanged: { label: 'No change', className: 'bg-slate-100 text-slate-500' },
+  create: { label: 'New', className: 'bg-terrace-100 text-terrace-700' },
+  update: { label: 'Update', className: 'bg-brand-100 text-brand-700' },
+  unchanged: { label: 'No change', className: 'bg-stone-100 text-stone-500' },
   error: { label: 'Error', className: 'bg-red-100 text-red-700' },
 };
 
@@ -109,37 +109,37 @@ export default function ImportProductsModal({ open, onClose, onImported }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl mx-4 max-h-[90vh] flex flex-col">
-        <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-slate-800">Import phones from a spreadsheet</h2>
-          <button onClick={close} className="text-slate-400 hover:text-slate-600 text-xl leading-none">&times;</button>
+      <div className="bg-white rounded-lg shadow-2xl w-full max-w-4xl mx-4 max-h-[90vh] flex flex-col">
+        <div className="px-6 py-4 border-b border-stone-200 flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-stone-800">Import phones from a spreadsheet</h2>
+          <button onClick={close} className="text-stone-400 hover:text-stone-600 text-xl leading-none">&times;</button>
         </div>
 
         <div className="p-6 space-y-5 overflow-y-auto min-h-0">
           {/* Step 1 & 2 */}
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="rounded-lg border border-slate-200 p-4">
-              <p className="text-sm font-semibold text-slate-700">1. Fill in the template</p>
-              <p className="mt-1 text-xs text-slate-500">
+            <div className="rounded-lg border border-stone-200 p-4">
+              <p className="text-sm font-semibold text-stone-700">1. Fill in the template</p>
+              <p className="mt-1 text-xs text-stone-500">
                 One row per phone model. Re-uploading updates phones with the same model number.
               </p>
               <button
                 onClick={downloadTemplate}
                 disabled={busy === 'template'}
-                className="mt-3 px-3 py-2 text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg disabled:opacity-50"
+                className="mt-3 px-3 py-2 text-sm font-medium text-brand-700 bg-brand-50 hover:bg-brand-100 rounded-lg disabled:opacity-50"
               >
                 {busy === 'template' ? 'Downloading…' : 'Download Excel template'}
               </button>
             </div>
-            <div className="rounded-lg border border-slate-200 p-4">
-              <p className="text-sm font-semibold text-slate-700">2. Upload your file</p>
-              <p className="mt-1 text-xs text-slate-500">Excel (.xlsx) or CSV, up to 5,000 phones.</p>
+            <div className="rounded-lg border border-stone-200 p-4">
+              <p className="text-sm font-semibold text-stone-700">2. Upload your file</p>
+              <p className="mt-1 text-xs text-stone-500">Excel (.xlsx) or CSV, up to 5,000 phones.</p>
               <input
                 ref={inputRef}
                 type="file"
                 accept=".xlsx,.csv"
                 onChange={chooseFile}
-                className="mt-3 block w-full text-sm text-slate-600 file:mr-3 file:px-3 file:py-2 file:rounded-lg file:border-0 file:bg-slate-100 file:text-slate-700 file:text-sm file:font-medium hover:file:bg-slate-200"
+                className="mt-3 block w-full text-sm text-stone-600 file:mr-3 file:px-3 file:py-2 file:rounded-lg file:border-0 file:bg-stone-100 file:text-stone-700 file:text-sm file:font-medium hover:file:bg-stone-200"
               />
             </div>
           </div>
@@ -150,7 +150,7 @@ export default function ImportProductsModal({ open, onClose, onImported }) {
 
           {/* Result */}
           {result && (
-            <div className="px-4 py-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm rounded-lg">
+            <div className="px-4 py-3 bg-terrace-50 border border-terrace-200 text-terrace-800 text-sm rounded-lg">
               <p className="font-semibold">Import complete.</p>
               <p>
                 {summary.create} new, {summary.update} updated, {summary.unchanged} unchanged.
@@ -163,14 +163,14 @@ export default function ImportProductsModal({ open, onClose, onImported }) {
           {preview && !result && (
             <div className="space-y-3">
               <div className="flex flex-wrap items-center gap-2 text-sm">
-                <span className="font-semibold text-slate-700">Preview — nothing saved yet:</span>
-                <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-700">{summary.create} new</span>
-                <span className="px-2 py-0.5 rounded bg-blue-100 text-blue-700">{summary.update} updated</span>
-                <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-600">{summary.unchanged} unchanged</span>
+                <span className="font-semibold text-stone-700">Preview — nothing saved yet:</span>
+                <span className="px-2 py-0.5 rounded bg-terrace-100 text-terrace-700">{summary.create} new</span>
+                <span className="px-2 py-0.5 rounded bg-brand-100 text-brand-700">{summary.update} updated</span>
+                <span className="px-2 py-0.5 rounded bg-stone-100 text-stone-600">{summary.unchanged} unchanged</span>
                 {summary.error > 0 && (
                   <span className="px-2 py-0.5 rounded bg-red-100 text-red-700">{summary.error} with errors</span>
                 )}
-                <label className="ml-auto flex items-center gap-1.5 text-xs text-slate-500 cursor-pointer">
+                <label className="ml-auto flex items-center gap-1.5 text-xs text-stone-500 cursor-pointer">
                   <input type="checkbox" checked={onlyProblems} onChange={(e) => setOnlyProblems(e.target.checked)} />
                   Only rows with errors or notes
                 </label>
@@ -182,10 +182,10 @@ export default function ImportProductsModal({ open, onClose, onImported }) {
                 </p>
               )}
 
-              <div className="border border-slate-200 rounded-lg overflow-hidden">
+              <div className="border border-stone-200 rounded-lg overflow-hidden">
                 <div className="max-h-80 overflow-y-auto">
                   <table className="w-full text-sm">
-                    <thead className="bg-slate-50 text-slate-500 text-xs uppercase sticky top-0">
+                    <thead className="bg-stone-50 text-stone-500 text-xs uppercase sticky top-0">
                       <tr>
                         <th className="px-3 py-2 text-left font-medium">Row</th>
                         <th className="px-3 py-2 text-left font-medium">Phone</th>
@@ -194,20 +194,20 @@ export default function ImportProductsModal({ open, onClose, onImported }) {
                         <th className="px-3 py-2 text-left font-medium">Notes</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100">
+                    <tbody className="divide-y divide-stone-100">
                       {visibleRows.map((r) => (
                         <tr key={r.row} className="align-top">
-                          <td className="px-3 py-2 text-slate-400 tabular-nums">{r.row}</td>
+                          <td className="px-3 py-2 text-stone-400 tabular-nums">{r.row}</td>
                           <td className="px-3 py-2 min-w-0">
-                            <p className="font-medium text-slate-800 break-words">{r.name || '—'}</p>
-                            <p className="text-xs text-slate-500 break-all">{r.model_number}</p>
+                            <p className="font-medium text-stone-800 break-words">{r.name || '—'}</p>
+                            <p className="text-xs text-stone-500 break-all">{r.model_number}</p>
                           </td>
                           <td className="px-3 py-2">
                             <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${ACTION_STYLES[r.action].className}`}>
                               {ACTION_STYLES[r.action].label}
                             </span>
                           </td>
-                          <td className="px-3 py-2 text-slate-600 tabular-nums whitespace-nowrap">{stockText(r)}</td>
+                          <td className="px-3 py-2 text-stone-600 tabular-nums whitespace-nowrap">{stockText(r)}</td>
                           <td className="px-3 py-2 text-xs">
                             {r.errors.map((e) => (
                               <p key={e} className="text-red-600">{e}</p>
@@ -220,7 +220,7 @@ export default function ImportProductsModal({ open, onClose, onImported }) {
                       ))}
                       {visibleRows.length === 0 && (
                         <tr>
-                          <td colSpan={5} className="px-3 py-6 text-center text-slate-400">No rows to show.</td>
+                          <td colSpan={5} className="px-3 py-6 text-center text-stone-400">No rows to show.</td>
                         </tr>
                       )}
                     </tbody>
@@ -231,21 +231,21 @@ export default function ImportProductsModal({ open, onClose, onImported }) {
           )}
         </div>
 
-        <div className="px-6 py-4 border-t border-slate-200 flex justify-end gap-3">
+        <div className="px-6 py-4 border-t border-stone-200 flex justify-end gap-3">
           {result ? (
-            <button onClick={close} className="px-4 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg">
+            <button onClick={close} className="px-4 py-2 text-sm font-semibold text-white bg-brand-600 hover:bg-brand-700 rounded-lg">
               Done
             </button>
           ) : (
             <>
-              <button onClick={close} className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg">
+              <button onClick={close} className="px-4 py-2 text-sm font-medium text-stone-700 bg-stone-100 hover:bg-stone-200 rounded-lg">
                 Cancel
               </button>
               {!preview ? (
                 <button
                   onClick={() => upload(true)}
                   disabled={!file || busy === 'preview'}
-                  className="px-4 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg disabled:bg-blue-300 disabled:cursor-not-allowed"
+                  className="px-4 py-2 text-sm font-semibold text-white bg-brand-600 hover:bg-brand-700 rounded-lg disabled:bg-brand-300 disabled:cursor-not-allowed"
                 >
                   {busy === 'preview' ? 'Checking…' : 'Preview import'}
                 </button>
@@ -253,7 +253,7 @@ export default function ImportProductsModal({ open, onClose, onImported }) {
                 <button
                   onClick={() => upload(false)}
                   disabled={summary.error > 0 || changes === 0 || busy === 'import'}
-                  className="px-4 py-2 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg disabled:bg-slate-300 disabled:cursor-not-allowed"
+                  className="px-4 py-2 text-sm font-semibold text-white bg-terrace-600 hover:bg-terrace-700 rounded-lg disabled:bg-stone-300 disabled:cursor-not-allowed"
                 >
                   {busy === 'import'
                     ? 'Importing…'

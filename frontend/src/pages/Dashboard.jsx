@@ -47,20 +47,20 @@ function AttentionCard({ to, label, value, hint, tone, loading }) {
   const tones = {
     red: 'border-red-200 bg-red-50 text-red-700',
     amber: 'border-amber-200 bg-amber-50 text-amber-700',
-    blue: 'border-blue-200 bg-blue-50 text-blue-700',
-    calm: 'border-slate-200 bg-white text-slate-700',
+    blue: 'border-brand-200 bg-brand-50 text-brand-700',
+    calm: 'border-stone-200 bg-white text-stone-700',
   };
   const active = !loading && value > 0;
   return (
     <Link
       to={to}
-      className={`rounded-xl border p-4 transition-shadow hover:shadow-md ${
+      className={`rounded-lg border p-4 transition-shadow hover:shadow-md ${
         active ? tones[tone] : tones.calm
       }`}
     >
       <p className="text-xs font-semibold uppercase tracking-wide opacity-80">{label}</p>
       {loading ? (
-        <div className="mt-2 h-8 w-12 rounded bg-slate-200 animate-pulse" />
+        <div className="mt-2 h-8 w-12 rounded bg-stone-200 animate-pulse" />
       ) : (
         <p className="mt-1 text-3xl font-bold">{value ?? '—'}</p>
       )}
@@ -71,25 +71,25 @@ function AttentionCard({ to, label, value, hint, tone, loading }) {
 
 function StatTile({ label, value, sub, loading }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4">
-      <p className="text-sm text-slate-500">{label}</p>
+    <div className="rounded-lg border border-stone-200 bg-white p-4">
+      <p className="text-sm text-stone-500">{label}</p>
       {loading ? (
-        <div className="mt-2 h-7 w-24 rounded bg-slate-100 animate-pulse" />
+        <div className="mt-2 h-7 w-24 rounded bg-stone-100 animate-pulse" />
       ) : (
-        <p className="mt-1 text-2xl font-semibold text-slate-800 tabular-nums">{value ?? '—'}</p>
+        <p className="mt-1 text-2xl font-semibold text-stone-800 tabular-nums">{value ?? '—'}</p>
       )}
-      {sub && <p className="mt-0.5 text-xs text-slate-400">{sub}</p>}
+      {sub && <p className="mt-0.5 text-xs text-stone-400">{sub}</p>}
     </div>
   );
 }
 
 function Panel({ title, linkTo, linkLabel, children }) {
   return (
-    <section className="rounded-xl border border-slate-200 bg-white flex flex-col min-w-0">
-      <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100">
-        <h2 className="text-sm font-semibold text-slate-700">{title}</h2>
+    <section className="rounded-lg border border-stone-200 bg-white flex flex-col min-w-0">
+      <div className="flex items-center justify-between px-5 py-3 border-b border-stone-100">
+        <h2 className="text-sm font-semibold text-stone-700">{title}</h2>
         {linkTo && (
-          <Link to={linkTo} className="text-xs font-medium text-blue-600 hover:underline">
+          <Link to={linkTo} className="text-xs font-medium text-brand-600 hover:underline">
             {linkLabel}
           </Link>
         )}
@@ -100,14 +100,14 @@ function Panel({ title, linkTo, linkLabel, children }) {
 }
 
 function PanelMessage({ children }) {
-  return <p className="px-5 py-8 text-center text-sm text-slate-400">{children}</p>;
+  return <p className="px-5 py-8 text-center text-sm text-stone-400">{children}</p>;
 }
 
 function PanelSkeleton() {
   return (
     <div className="p-5 space-y-3">
       {[0, 1, 2].map((i) => (
-        <div key={i} className="h-10 rounded bg-slate-100 animate-pulse" />
+        <div key={i} className="h-10 rounded bg-stone-100 animate-pulse" />
       ))}
     </div>
   );
@@ -194,13 +194,13 @@ export default function Dashboard() {
       {/* Header */}
       <div className="flex items-end justify-between gap-4">
         <div>
-          <p className="text-sm text-slate-500">{today}</p>
-          <h1 className="text-2xl font-bold text-slate-800">{greeting()}</h1>
+          <p className="text-sm text-stone-500">{today}</p>
+          <h1 className="text-2xl font-bold text-stone-800">{greeting()}</h1>
         </div>
         <button
           onClick={load}
           disabled={loading}
-          className="text-sm text-slate-500 hover:text-blue-600 disabled:text-slate-300"
+          className="text-sm text-stone-500 hover:text-brand-600 disabled:text-stone-300"
         >
           {loading ? 'Refreshing…' : 'Refresh'}
         </button>
@@ -214,7 +214,7 @@ export default function Dashboard() {
 
       {/* Needs attention */}
       <div>
-        <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-2">
+        <h2 className="text-xs font-semibold uppercase tracking-wide text-stone-400 mb-2">
           Needs attention
         </h2>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -273,10 +273,10 @@ export default function Dashboard() {
           ) : recentChats.length === 0 ? (
             <PanelMessage>No customer messages yet.</PanelMessage>
           ) : (
-            <ul className="divide-y divide-slate-100">
+            <ul className="divide-y divide-stone-100">
               {recentChats.map((c) => (
                 <li key={c.messenger_user_id}>
-                  <Link to="/live-chat" className="flex items-start gap-3 px-5 py-3 hover:bg-slate-50">
+                  <Link to="/live-chat" className="flex items-start gap-3 px-5 py-3 hover:bg-stone-50">
                     <span
                       className={`mt-1.5 h-2 w-2 flex-shrink-0 rounded-full ${
                         c.unread_handoff ? 'bg-amber-500' : 'bg-transparent'
@@ -284,20 +284,20 @@ export default function Dashboard() {
                     />
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between gap-2">
-                        <span className="truncate text-sm font-medium text-slate-800">
+                        <span className="truncate text-sm font-medium text-stone-800">
                           {c.customer_name || 'Messenger user'}
                         </span>
-                        <span className="flex-shrink-0 text-xs text-slate-400">
+                        <span className="flex-shrink-0 text-xs text-stone-400">
                           {timeAgo(c.last_message_timestamp)}
                         </span>
                       </div>
-                      <p className="truncate text-sm text-slate-500">{c.last_message_text}</p>
+                      <p className="truncate text-sm text-stone-500">{c.last_message_text}</p>
                     </div>
                     <span
                       className={`flex-shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold ${
                         c.thread_state === 'HUMAN_CONTROLLED'
                           ? 'bg-purple-100 text-purple-700'
-                          : 'bg-slate-100 text-slate-500'
+                          : 'bg-stone-100 text-stone-500'
                       }`}
                     >
                       {c.thread_state === 'HUMAN_CONTROLLED' ? 'STAFF' : 'AI'}
@@ -315,19 +315,19 @@ export default function Dashboard() {
           ) : upcomingReservations.length === 0 ? (
             <PanelMessage>No active reservations.</PanelMessage>
           ) : (
-            <ul className="divide-y divide-slate-100">
+            <ul className="divide-y divide-stone-100">
               {upcomingReservations.map((r) => {
                 const expires = parseServerDate(r.expiry_date);
                 const overdue = expires.getTime() < Date.now();
                 return (
                   <li key={r.id} className="flex items-center gap-3 px-5 py-3">
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium text-slate-800">
+                      <p className="truncate text-sm font-medium text-stone-800">
                         {productById[r.product_id]?.name || `Product #${r.product_id}`}
                       </p>
-                      <p className="text-xs text-slate-500">Customer #{r.customer_id}</p>
+                      <p className="text-xs text-stone-500">Customer #{r.customer_id}</p>
                     </div>
-                    <span className={`text-xs ${overdue ? 'text-red-600 font-medium' : 'text-slate-500'}`}>
+                    <span className={`text-xs ${overdue ? 'text-red-600 font-medium' : 'text-stone-500'}`}>
                       {overdue ? 'Expired' : 'Expires'}{' '}
                       {expires.toLocaleDateString('en-PH', { month: 'short', day: 'numeric' })}
                     </span>
@@ -345,14 +345,14 @@ export default function Dashboard() {
           ) : openRepairs.length === 0 ? (
             <PanelMessage>No open repair jobs.</PanelMessage>
           ) : (
-            <ul className="divide-y divide-slate-100">
+            <ul className="divide-y divide-stone-100">
               {openRepairs.slice(0, 5).map((r) => (
                 <li key={r.id} className="flex items-center gap-3 px-5 py-3">
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-slate-800">{r.device_model}</p>
-                    <p className="truncate text-xs text-slate-500">{r.issue_description}</p>
+                    <p className="truncate text-sm font-medium text-stone-800">{r.device_model}</p>
+                    <p className="truncate text-xs text-stone-500">{r.issue_description}</p>
                   </div>
-                  <span className="text-xs text-slate-500 tabular-nums">
+                  <span className="text-xs text-stone-500 tabular-nums">
                     {peso.format(Number(r.estimated_cost || 0))}
                   </span>
                   <StatusBadge status={r.status} />
@@ -372,12 +372,12 @@ export default function Dashboard() {
                 : 'Everything is well stocked.'}
             </PanelMessage>
           ) : (
-            <ul className="divide-y divide-slate-100">
+            <ul className="divide-y divide-stone-100">
               {lowStock.slice(0, 5).map((p) => (
                 <li key={p.id} className="flex items-center gap-3 px-5 py-3">
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-slate-800">{p.name}</p>
-                    <p className="text-xs text-slate-500">{peso.format(Number(p.selling_price || 0))}</p>
+                    <p className="truncate text-sm font-medium text-stone-800">{p.name}</p>
+                    <p className="text-xs text-stone-500">{peso.format(Number(p.selling_price || 0))}</p>
                   </div>
                   <StatusBadge count={p.count} />
                 </li>

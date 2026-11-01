@@ -1,3 +1,24 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  h1 {
+    @apply font-display font-bold uppercase tracking-wide;
+  }
+}
+
+@layer components {
+  /* Stripe band in the colors of the woven cloth on the shop sign */
+  .weave {
+    background-image: repeating-linear-gradient(
+      90deg,
+      #a8182f 0 10px,
+      #2b0a12 10px 12px,
+      #c8251a 12px 18px,
+      #1d2340 18px 22px,
+      #e9dcc6 22px 23px,
+      #1d2340 23px 26px
+    );
+  }
+}

@@ -9,7 +9,7 @@ import api from '../../services/api';
 const SUGGESTED_SPECS = ['RAM', 'Storage', 'Screen', 'Battery', 'Main Camera', 'Chipset', 'Colors'];
 
 const inputClass =
-  'w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-50';
+  'w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:bg-stone-50';
 
 function errorMessage(err, fallback) {
   const data = err.response?.data;
@@ -86,7 +86,7 @@ function NamePicker({ label, value, options, onChange, endpoint, onCreated }) {
 
   return (
     <div>
-      <label className="block text-sm font-medium text-slate-700 mb-1">{label}</label>
+      <label className="block text-sm font-medium text-stone-700 mb-1">{label}</label>
       {adding ? (
         <div className="flex gap-2">
           <input
@@ -104,11 +104,11 @@ function NamePicker({ label, value, options, onChange, endpoint, onCreated }) {
             className={inputClass}
           />
           <button type="button" onClick={create} disabled={saving}
-            className="px-3 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg disabled:opacity-50">
+            className="px-3 text-sm font-medium text-white bg-brand-600 hover:bg-brand-700 rounded-lg disabled:opacity-50">
             Add
           </button>
           <button type="button" onClick={() => setAdding(false)}
-            className="px-2 text-sm text-slate-500 hover:text-slate-700">
+            className="px-2 text-sm text-stone-500 hover:text-stone-700">
             Cancel
           </button>
         </div>
@@ -229,14 +229,14 @@ export default function ProductPanel({
         onClick={(e) => e.stopPropagation()}
         className="h-full w-full max-w-xl bg-white shadow-2xl flex flex-col"
       >
-        <div className="px-6 py-4 border-b border-slate-200 flex items-start justify-between gap-4">
+        <div className="px-6 py-4 border-b border-stone-200 flex items-start justify-between gap-4">
           <div className="min-w-0">
-            <h2 className="text-lg font-semibold text-slate-800 truncate">
+            <h2 className="text-lg font-semibold text-stone-800 truncate">
               {isNew ? 'Add product' : product.name}
             </h2>
-            {!isNew && product.model_number && <p className="text-xs text-slate-500 truncate">{product.model_number}</p>}
+            {!isNew && product.model_number && <p className="text-xs text-stone-500 truncate">{product.model_number}</p>}
           </div>
-          <button type="button" onClick={onClose} className="text-slate-400 hover:text-slate-600 text-xl leading-none">
+          <button type="button" onClick={onClose} className="text-stone-400 hover:text-stone-600 text-xl leading-none">
             &times;
           </button>
         </div>
@@ -252,24 +252,24 @@ export default function ProductPanel({
           )}
 
           {/* Stock */}
-          <section className="rounded-lg border border-slate-200 p-4">
-            <label className="block text-sm font-semibold text-slate-700">Units in store</label>
-            <p className="text-xs text-slate-500 mb-3">How many are on the shelf right now.</p>
+          <section className="rounded-lg border border-stone-200 p-4">
+            <label className="block text-sm font-semibold text-stone-700">Units in store</label>
+            <p className="text-xs text-stone-500 mb-3">How many are on the shelf right now.</p>
             <div className="flex items-center gap-2">
               <button type="button"
                 onClick={() => setForm((f) => ({ ...f, in_stock: Math.max(0, (parseInt(f.in_stock, 10) || 0) - 1) }))}
-                className="h-9 w-9 rounded-lg border border-slate-300 text-lg text-slate-600 hover:bg-slate-50">
+                className="h-9 w-9 rounded-lg border border-stone-300 text-lg text-stone-600 hover:bg-stone-50">
                 −
               </button>
               <input type="number" min="0" value={form.in_stock} onChange={set('in_stock')}
-                className="h-9 w-24 px-3 border border-slate-300 rounded-lg text-center text-sm tabular-nums focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                className="h-9 w-24 px-3 border border-stone-300 rounded-lg text-center text-sm tabular-nums focus:outline-none focus:ring-2 focus:ring-brand-500" />
               <button type="button"
                 onClick={() => setForm((f) => ({ ...f, in_stock: (parseInt(f.in_stock, 10) || 0) + 1 }))}
-                className="h-9 w-9 rounded-lg border border-slate-300 text-lg text-slate-600 hover:bg-slate-50">
+                className="h-9 w-9 rounded-lg border border-stone-300 text-lg text-stone-600 hover:bg-stone-50">
                 +
               </button>
               {!isNew && Number(form.in_stock) !== (stock ?? 0) && (
-                <span className="text-xs text-slate-500">was {stock ?? 0}</span>
+                <span className="text-xs text-stone-500">was {stock ?? 0}</span>
               )}
             </div>
           </section>
@@ -277,12 +277,12 @@ export default function ProductPanel({
           {/* Details */}
           <section className="grid grid-cols-2 gap-4">
             <div className="col-span-2">
-              <label className="block text-sm font-medium text-slate-700 mb-1">Name</label>
+              <label className="block text-sm font-medium text-stone-700 mb-1">Name</label>
               <input value={form.name} onChange={set('name')} className={inputClass}
                 placeholder="e.g. Galaxy A55 5G 8/256GB" />
             </div>
             <div className="col-span-2">
-              <label className="block text-sm font-medium text-slate-700 mb-1">Model number</label>
+              <label className="block text-sm font-medium text-stone-700 mb-1">Model number</label>
               <input value={form.model_number} onChange={set('model_number')} className={inputClass}
                 placeholder="e.g. SM-A556E-256 (must be unique if filled in)" />
             </div>
@@ -291,26 +291,26 @@ export default function ProductPanel({
             <NamePicker label="Category" value={form.category_id} options={categories} endpoint="/categories"
               onChange={(v) => setForm((f) => ({ ...f, category_id: v }))} onCreated={onCategoryCreated} />
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Cost price (₱)</label>
+              <label className="block text-sm font-medium text-stone-700 mb-1">Cost price (₱)</label>
               <input type="number" step="0.01" min="0" value={form.cost_price} onChange={set('cost_price')} className={inputClass} />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Selling price (₱)</label>
+              <label className="block text-sm font-medium text-stone-700 mb-1">Selling price (₱)</label>
               <input type="number" step="0.01" min="0" value={form.selling_price} onChange={set('selling_price')} className={inputClass} />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Warranty (months)</label>
+              <label className="block text-sm font-medium text-stone-700 mb-1">Warranty (months)</label>
               <input type="number" min="0" value={form.warranty_months} onChange={set('warranty_months')} className={inputClass} />
             </div>
             <div className="flex items-end pb-2">
-              <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+              <label className="flex items-center gap-2 text-sm text-stone-700 cursor-pointer">
                 <input type="checkbox" checked={form.is_active}
                   onChange={(e) => setForm((f) => ({ ...f, is_active: e.target.checked }))} />
                 Visible (shown to the chatbot)
               </label>
             </div>
             <div className="col-span-2">
-              <label className="block text-sm font-medium text-slate-700 mb-1">Description</label>
+              <label className="block text-sm font-medium text-stone-700 mb-1">Description</label>
               <textarea rows="2" value={form.description} onChange={set('description')} className={inputClass} />
             </div>
           </section>
@@ -318,10 +318,10 @@ export default function ProductPanel({
           {/* Specs */}
           <section>
             <div className="flex items-center justify-between mb-2">
-              <h3 className="text-sm font-semibold text-slate-700">Specs</h3>
+              <h3 className="text-sm font-semibold text-stone-700">Specs</h3>
               <button type="button"
                 onClick={() => setForm((f) => ({ ...f, specs: [...f.specs, { key: nextSuggestion, value: '' }] }))}
-                className="text-xs font-medium text-blue-600 hover:underline">
+                className="text-xs font-medium text-brand-600 hover:underline">
                 + Add spec
               </button>
             </div>
@@ -335,12 +335,12 @@ export default function ProductPanel({
                     placeholder="Value (e.g. 8GB)" className={`${inputClass} min-w-0`} />
                   <button type="button" aria-label="Remove spec"
                     onClick={() => setForm((f) => ({ ...f, specs: f.specs.filter((_, j) => j !== i) }))}
-                    className="px-2 text-slate-400 hover:text-red-600">
+                    className="px-2 text-stone-400 hover:text-red-600">
                     &times;
                   </button>
                 </div>
               ))}
-              {form.specs.length === 0 && <p className="text-xs text-slate-400">No specs yet.</p>}
+              {form.specs.length === 0 && <p className="text-xs text-stone-400">No specs yet.</p>}
             </div>
             <datalist id="spec-suggestions">
               {SUGGESTED_SPECS.map((k) => <option key={k} value={k} />)}
@@ -348,13 +348,13 @@ export default function ProductPanel({
           </section>
         </div>
 
-        <div className="px-6 py-4 border-t border-slate-200 flex justify-end gap-3">
+        <div className="px-6 py-4 border-t border-stone-200 flex justify-end gap-3">
           <button type="button" onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg">
+            className="px-4 py-2 text-sm font-medium text-stone-700 bg-stone-100 hover:bg-stone-200 rounded-lg">
             {notice ? 'Close' : 'Cancel'}
           </button>
           <button type="submit" disabled={saving}
-            className="px-4 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg disabled:bg-blue-300">
+            className="px-4 py-2 text-sm font-semibold text-white bg-brand-600 hover:bg-brand-700 rounded-lg disabled:bg-brand-300">
             {saving ? 'Saving…' : isNew ? 'Add product' : 'Save changes'}
           </button>
         </div>

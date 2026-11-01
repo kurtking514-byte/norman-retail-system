@@ -98,10 +98,10 @@ function NewReservationModal({ open, onClose, onCreated, products }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
-        <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-slate-800">New Reservation</h2>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 text-xl leading-none">&times;</button>
+      <div className="bg-white rounded-lg shadow-2xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
+        <div className="px-6 py-4 border-b border-stone-200 flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-stone-800">New Reservation</h2>
+          <button onClick={onClose} className="text-stone-400 hover:text-stone-600 text-xl leading-none">&times;</button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
@@ -113,13 +113,13 @@ function NewReservationModal({ open, onClose, onCreated, products }) {
 
           {/* Product search / select */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Product *</label>
+            <label className="block text-sm font-medium text-stone-700 mb-1">Product *</label>
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search products..."
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2"
+              className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 mb-2"
             />
             <select
               name="product_id"
@@ -127,7 +127,7 @@ function NewReservationModal({ open, onClose, onCreated, products }) {
               onChange={handleChange}
               required
               size={4}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
             >
               <option value="">-- Select a product --</option>
               {filteredProducts.map((p) => (
@@ -142,7 +142,7 @@ function NewReservationModal({ open, onClose, onCreated, products }) {
 
           {/* Customer mode toggle */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Customer</label>
+            <label className="block text-sm font-medium text-stone-700 mb-2">Customer</label>
             <div className="flex gap-4 mb-3">
               <label className="flex items-center gap-2 text-sm">
                 <input
@@ -151,7 +151,7 @@ function NewReservationModal({ open, onClose, onCreated, products }) {
                   value="existing"
                   checked={form.customerMode === 'existing'}
                   onChange={handleChange}
-                  className="text-blue-600"
+                  className="text-brand-600"
                 />
                 Existing Customer
               </label>
@@ -162,7 +162,7 @@ function NewReservationModal({ open, onClose, onCreated, products }) {
                   value="new"
                   checked={form.customerMode === 'new'}
                   onChange={handleChange}
-                  className="text-blue-600"
+                  className="text-brand-600"
                 />
                 New Customer
               </label>
@@ -170,16 +170,16 @@ function NewReservationModal({ open, onClose, onCreated, products }) {
 
             {form.customerMode === 'existing' ? (
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Customer ID *</label>
+                <label className="block text-sm font-medium text-stone-700 mb-1">Customer ID *</label>
                 <input
                   name="customer_id"
                   type="number"
                   value={form.customer_id}
                   onChange={handleChange}
                   placeholder="Enter customer ID"
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                 />
-                <p className="text-xs text-slate-400 mt-1">
+                <p className="text-xs text-stone-400 mt-1">
                   {/* TODO: Replace with customer search when /customers endpoint exists */}
                   Enter the numeric customer ID from the database.
                 </p>
@@ -187,31 +187,31 @@ function NewReservationModal({ open, onClose, onCreated, products }) {
             ) : (
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">First Name *</label>
+                  <label className="block text-sm font-medium text-stone-700 mb-1">First Name *</label>
                   <input
                     name="first_name"
                     value={form.first_name}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Last Name *</label>
+                  <label className="block text-sm font-medium text-stone-700 mb-1">Last Name *</label>
                   <input
                     name="last_name"
                     value={form.last_name}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                   />
                 </div>
                 <div className="col-span-2">
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Phone Number *</label>
+                  <label className="block text-sm font-medium text-stone-700 mb-1">Phone Number *</label>
                   <input
                     name="phone_number"
                     value={form.phone_number}
                     onChange={handleChange}
                     placeholder="+63-xxx-xxx-xxxx"
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                   />
                 </div>
               </div>
@@ -222,7 +222,7 @@ function NewReservationModal({ open, onClose, onCreated, products }) {
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors"
+              className="px-4 py-2 text-sm font-medium text-stone-700 bg-stone-100 hover:bg-stone-200 rounded-lg transition-colors"
             >
               Cancel
             </button>
@@ -230,7 +230,7 @@ function NewReservationModal({ open, onClose, onCreated, products }) {
               type="submit"
               disabled={submitting}
               className={`px-4 py-2 text-sm font-semibold text-white rounded-lg transition-colors ${
-                submitting ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
+                submitting ? 'bg-brand-400 cursor-not-allowed' : 'bg-brand-600 hover:bg-brand-700'
               }`}
             >
               {submitting ? 'Creating...' : 'Create Reservation'}
@@ -283,7 +283,7 @@ function StatusDropdown({ currentStatus, onChange }) {
     <select
       onChange={handleChange}
       defaultValue=""
-      className="px-2 py-1 text-xs border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white"
+      className="px-2 py-1 text-xs border border-stone-300 rounded-md focus:outline-none focus:ring-1 focus:ring-brand-500 bg-white"
     >
       <option value="" disabled>
         Change status...
@@ -369,14 +369,14 @@ export default function Reservations() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">Reservations</h1>
-          <p className="text-sm text-slate-500 mt-0.5">
+          <h1 className="text-2xl font-bold text-stone-800">Reservations</h1>
+          <p className="text-sm text-stone-500 mt-0.5">
             {loading ? 'Loading...' : `${reservations.length} reservation${reservations.length !== 1 ? 's' : ''}`}
           </p>
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-colors shadow-sm"
+          className="px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-lg transition-colors shadow-sm"
         >
           + New Reservation
         </button>
@@ -392,11 +392,11 @@ export default function Reservations() {
 
       {/* Filter */}
       <div className="mb-4 flex items-center gap-2">
-        <label className="text-sm text-slate-600 font-medium">Status:</label>
+        <label className="text-sm text-stone-600 font-medium">Status:</label>
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+          className="px-3 py-2 border border-stone-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white"
         >
           <option value="">All</option>
           <option value="Pending">Pending</option>
@@ -407,15 +407,15 @@ export default function Reservations() {
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+      <div className="bg-white rounded-lg border border-stone-200 overflow-hidden shadow-sm">
         {loading ? (
           <div className="p-8 space-y-4">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-10 bg-slate-100 rounded animate-pulse" />
+              <div key={i} className="h-10 bg-stone-100 rounded animate-pulse" />
             ))}
           </div>
         ) : reservations.length === 0 ? (
-          <div className="text-center py-12 text-slate-500">
+          <div className="text-center py-12 text-stone-500">
             <p className="text-lg font-medium">No reservations found</p>
             <p className="text-sm mt-1">
               {statusFilter ? 'Try a different filter.' : 'Click "New Reservation" to create one.'}
@@ -424,39 +424,39 @@ export default function Reservations() {
         ) : (
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-slate-50 border-b border-slate-200">
-                <th className="text-left px-4 py-3 font-semibold text-slate-600">Customer</th>
-                <th className="text-left px-4 py-3 font-semibold text-slate-600">Product</th>
-                <th className="text-left px-4 py-3 font-semibold text-slate-600">Reservation Date</th>
-                <th className="text-left px-4 py-3 font-semibold text-slate-600">Expiry Date</th>
-                <th className="text-left px-4 py-3 font-semibold text-slate-600">Status</th>
-                <th className="text-right px-4 py-3 font-semibold text-slate-600">Actions</th>
+              <tr className="bg-stone-50 border-b border-stone-200">
+                <th className="text-left px-4 py-3 font-semibold text-stone-600">Customer</th>
+                <th className="text-left px-4 py-3 font-semibold text-stone-600">Product</th>
+                <th className="text-left px-4 py-3 font-semibold text-stone-600">Reservation Date</th>
+                <th className="text-left px-4 py-3 font-semibold text-stone-600">Expiry Date</th>
+                <th className="text-left px-4 py-3 font-semibold text-stone-600">Status</th>
+                <th className="text-right px-4 py-3 font-semibold text-stone-600">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-stone-100">
               {reservations.map((res) => {
                 const product = productMap[res.product_id];
                 return (
-                  <tr key={res.id} className="hover:bg-slate-50 transition-colors">
+                  <tr key={res.id} className="hover:bg-stone-50 transition-colors">
                     <td className="px-4 py-3">
                       {/* TODO: Display real customer name once /customers endpoint exists.
                           For now, show Customer #ID since the API only returns customer_id. */}
-                      <span className="font-medium text-slate-800">
+                      <span className="font-medium text-stone-800">
                         Customer #{res.customer_id}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-slate-600">
+                    <td className="px-4 py-3 text-stone-600">
                       {product ? (
                         <>
-                          <div className="font-medium text-slate-800">{product.name}</div>
-                          <div className="text-xs text-slate-400">{product.model_number}</div>
+                          <div className="font-medium text-stone-800">{product.name}</div>
+                          <div className="text-xs text-stone-400">{product.model_number}</div>
                         </>
                       ) : (
-                        <span className="text-slate-400">Product #{res.product_id}</span>
+                        <span className="text-stone-400">Product #{res.product_id}</span>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-slate-600">{formatDate(res.reservation_date)}</td>
-                    <td className="px-4 py-3 text-slate-600">{formatDate(res.expiry_date)}</td>
+                    <td className="px-4 py-3 text-stone-600">{formatDate(res.reservation_date)}</td>
+                    <td className="px-4 py-3 text-stone-600">{formatDate(res.expiry_date)}</td>
                     <td className="px-4 py-3">
                       <StatusBadge status={res.status} />
                     </td>

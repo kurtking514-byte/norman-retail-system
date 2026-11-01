@@ -21,24 +21,24 @@ const statusColors = {
   // Reservation statuses
   Pending: 'bg-amber-100 text-amber-700',
   Confirmed: 'bg-blue-100 text-blue-700',
-  Claimed: 'bg-emerald-100 text-emerald-700',
-  Cancelled: 'bg-slate-100 text-slate-500',
+  Claimed: 'bg-terrace-100 text-terrace-700',
+  Cancelled: 'bg-stone-100 text-stone-500',
 
   // Repair statuses
   Diagnosis: 'bg-blue-100 text-blue-700',
   'In Progress': 'bg-blue-100 text-blue-700',
   'Ready for Pickup': 'bg-purple-100 text-purple-700',
-  Released: 'bg-emerald-100 text-emerald-700',
+  Released: 'bg-terrace-100 text-terrace-700',
 
   // Inventory stock states
-  'In Stock': 'bg-emerald-100 text-emerald-700',
+  'In Stock': 'bg-terrace-100 text-terrace-700',
   Reserved: 'bg-amber-100 text-amber-700',
   'In Repair': 'bg-blue-100 text-blue-700',
   'Out of Stock': 'bg-red-100 text-red-700',
-  Sold: 'bg-emerald-100 text-emerald-700',
+  Sold: 'bg-terrace-100 text-terrace-700',
 };
 
-const defaultClass = 'bg-slate-100 text-slate-600';
+const defaultClass = 'bg-stone-100 text-stone-600';
 
 export default function StatusBadge({ status, count }) {
   // If count is provided, render a stock-count style badge (e.g. "Low (2)", "In Stock (5)")
@@ -58,7 +58,7 @@ export default function StatusBadge({ status, count }) {
       );
     }
     return (
-      <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">
+      <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-terrace-100 text-terrace-700">
         In Stock ({count})
       </span>
     );

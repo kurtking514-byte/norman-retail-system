@@ -148,7 +148,7 @@ export default function Inventory() {
 
   const tabClass = (active) =>
     `px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-      active ? 'bg-slate-800 text-white' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+      active ? 'bg-stone-800 text-white' : 'bg-white text-stone-600 border border-stone-200 hover:bg-stone-50'
     }`;
 
   return (
@@ -156,21 +156,21 @@ export default function Inventory() {
       {/* Header */}
       <div className="flex items-center justify-between gap-4 mb-5">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">Inventory</h1>
-          <p className="text-sm text-slate-500 mt-0.5">
+          <h1 className="text-2xl font-bold text-stone-800">Inventory</h1>
+          <p className="text-sm text-stone-500 mt-0.5">
             {loading ? 'Loading...' : `${activeCount} products · ${totalUnits} units in stock`}
           </p>
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowImport(true)}
-            className="px-4 py-2.5 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 text-sm font-semibold rounded-lg transition-colors shadow-sm"
+            className="px-4 py-2.5 bg-white border border-stone-300 hover:bg-stone-50 text-stone-700 text-sm font-semibold rounded-lg transition-colors shadow-sm"
           >
             Import spreadsheet
           </button>
           <button
             onClick={() => setPanel({ product: null })}
-            className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-colors shadow-sm"
+            className="px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-lg transition-colors shadow-sm"
           >
             + Add Product
           </button>
@@ -212,12 +212,12 @@ export default function Inventory() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search name, model number or brand..."
-          className="w-full max-w-sm px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full max-w-sm px-4 py-2 border border-stone-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
         />
         <select
           value={brandFilter}
           onChange={(e) => setBrandFilter(e.target.value)}
-          className="px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white"
+          className="px-3 py-2 border border-stone-300 rounded-lg text-sm bg-white"
         >
           <option value="all">All brands</option>
           {brands.map((b) => (
@@ -227,33 +227,33 @@ export default function Inventory() {
         <select
           value={stockFilter}
           onChange={(e) => setStockFilter(e.target.value)}
-          className="px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white"
+          className="px-3 py-2 border border-stone-300 rounded-lg text-sm bg-white"
         >
           {STOCK_FILTERS.map((f) => (
             <option key={f.value} value={f.value}>{f.label}</option>
           ))}
         </select>
-        <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
+        <label className="flex items-center gap-2 text-sm text-stone-600 cursor-pointer">
           <input type="checkbox" checked={showHidden} onChange={(e) => setShowHidden(e.target.checked)} />
           Show hidden
         </label>
         {filtersOn && (
-          <button onClick={clearFilters} className="text-sm text-blue-600 hover:underline">
+          <button onClick={clearFilters} className="text-sm text-brand-600 hover:underline">
             Clear filters
           </button>
         )}
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+      <div className="bg-white rounded-lg border border-stone-200 overflow-hidden shadow-sm">
         {loading ? (
           <div className="p-8 space-y-4">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-10 bg-slate-100 rounded animate-pulse" />
+              <div key={i} className="h-10 bg-stone-100 rounded animate-pulse" />
             ))}
           </div>
         ) : visible.length === 0 ? (
-          <div className="text-center py-12 text-slate-500">
+          <div className="text-center py-12 text-stone-500">
             <p className="text-lg font-medium">No products found</p>
             <p className="text-sm mt-1">
               {products.length === 0
@@ -264,16 +264,16 @@ export default function Inventory() {
         ) : (
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-slate-50 border-b border-slate-200">
-                <th className="text-left px-4 py-3 font-semibold text-slate-600">Product</th>
-                <th className="text-left px-4 py-3 font-semibold text-slate-600">Brand</th>
-                <th className="text-left px-4 py-3 font-semibold text-slate-600">Category</th>
-                <th className="text-right px-4 py-3 font-semibold text-slate-600">Price</th>
-                <th className="text-left px-4 py-3 font-semibold text-slate-600">Stock</th>
-                <th className="text-right px-4 py-3 font-semibold text-slate-600">Actions</th>
+              <tr className="bg-stone-50 border-b border-stone-200">
+                <th className="text-left px-4 py-3 font-semibold text-stone-600">Product</th>
+                <th className="text-left px-4 py-3 font-semibold text-stone-600">Brand</th>
+                <th className="text-left px-4 py-3 font-semibold text-stone-600">Category</th>
+                <th className="text-right px-4 py-3 font-semibold text-stone-600">Price</th>
+                <th className="text-left px-4 py-3 font-semibold text-stone-600">Stock</th>
+                <th className="text-right px-4 py-3 font-semibold text-stone-600">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-stone-100">
               {visible.map((product) => {
                 const hidden = product.is_active === false;
                 const specs = Object.values(product.specifications || {}).slice(0, 3).join(' · ');
@@ -281,20 +281,20 @@ export default function Inventory() {
                   <tr
                     key={product.id}
                     onClick={() => setPanel({ product })}
-                    className={`cursor-pointer hover:bg-slate-50 transition-colors ${hidden ? 'opacity-50' : ''}`}
+                    className={`cursor-pointer hover:bg-stone-50 transition-colors ${hidden ? 'opacity-50' : ''}`}
                   >
                     <td className="px-4 py-3 max-w-xs">
-                      <div className="font-medium text-slate-800 truncate">
+                      <div className="font-medium text-stone-800 truncate">
                         {product.name}
-                        {hidden && <span className="ml-2 text-xs font-normal text-slate-500">(hidden)</span>}
+                        {hidden && <span className="ml-2 text-xs font-normal text-stone-500">(hidden)</span>}
                       </div>
-                      <div className="text-xs text-slate-400 truncate">
+                      <div className="text-xs text-stone-400 truncate">
                         {[product.model_number, specs].filter(Boolean).join(' · ')}
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-slate-600">{brandName[product.brand_id] || '—'}</td>
-                    <td className="px-4 py-3 text-slate-600">{categoryName[product.category_id] || '—'}</td>
-                    <td className="px-4 py-3 text-right text-slate-700 tabular-nums">
+                    <td className="px-4 py-3 text-stone-600">{brandName[product.brand_id] || '—'}</td>
+                    <td className="px-4 py-3 text-stone-600">{categoryName[product.category_id] || '—'}</td>
+                    <td className="px-4 py-3 text-right text-stone-700 tabular-nums">
                       {product.selling_price === null ? '—' : peso.format(Number(product.selling_price))}
                     </td>
                     <td className="px-4 py-3">
@@ -303,7 +303,7 @@ export default function Inventory() {
                     <td className="px-4 py-3 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                       <button
                         onClick={() => setPanel({ product })}
-                        className="px-3 py-1.5 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded mr-2"
+                        className="px-3 py-1.5 text-xs font-medium text-stone-700 bg-stone-100 hover:bg-stone-200 rounded mr-2"
                       >
                         Edit
                       </button>
@@ -312,7 +312,7 @@ export default function Inventory() {
                         disabled={busyId === product.id}
                         className={`px-3 py-1.5 text-xs font-medium rounded transition-colors disabled:opacity-50 ${
                           hidden
-                            ? 'text-emerald-700 bg-emerald-50 hover:bg-emerald-100'
+                            ? 'text-terrace-700 bg-terrace-50 hover:bg-terrace-100'
                             : 'text-red-600 bg-red-50 hover:bg-red-100'
                         }`}
                       >
