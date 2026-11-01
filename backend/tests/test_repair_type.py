@@ -89,3 +89,24 @@ async def test_returning_phone_reuses_customer_and_dates_are_set(client):
     assert again.json()["customer_id"] == first.json()["customer_id"]
     assert again.json()["customer_phone"] == phone
     assert again.json()["created_at"] is not None
+
+
+async def test_paid_flag_defaults_off_and_can_be_toggled(client):
+    created = await client.post("/api/v1/repairs", json={
+        **NEW_CUSTOMER, "phone_number": "+63-917-555-0411",
+        "device_model": "Galaxy A15", "repair_type": "Screen replacement",
+    })
+    assert created.status_code == 201, created.text
+    repair_id = created.json()["id"]
+    assert created.json()["is_paid"] is False
+
+    paid = await client.put(f"/api/v1/repairs/{repair_id}", json={"is_paid": True})
+    assert paid.status_code == 200, paid.text
+    assert paid.json()["is_paid"] is True
+
+    # Changing something else leaves the payment as it was
+    moved = await client.put(f"/api/v1/repairs/{repair_id}", json={"status": "Ready for Pickup"})
+    assert moved.json()["is_paid"] is True
+
+    listed = (await client.get("/api/v1/repairs")).json()
+    assert next(r for r in listed if r["id"] == repair_id)["is_paid"] is True

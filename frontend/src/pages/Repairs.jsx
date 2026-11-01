@@ -26,10 +26,12 @@ const STAGES = [
     badge: 'bg-amber-100 text-amber-800', bar: 'border-l-amber-400', dot: 'bg-amber-400' },
   { key: 'repairing', label: 'Being repaired', statuses: ['Diagnosis', 'In Progress'],
     badge: 'bg-blue-100 text-blue-800', bar: 'border-l-blue-500', dot: 'bg-blue-500' },
-  { key: 'done', label: 'Done', statuses: ['Ready for Pickup', 'Released', 'Completed'],
+  { key: 'pickup', label: 'Waiting for pickup', statuses: ['Ready for Pickup'],
     badge: 'bg-terrace-100 text-terrace-800', bar: 'border-l-terrace-500', dot: 'bg-terrace-500' },
+  { key: 'done', label: 'Picked up', statuses: ['Released', 'Completed'],
+    badge: 'bg-stone-200 text-stone-700', bar: 'border-l-stone-500', dot: 'bg-stone-500' },
   { key: 'cancelled', label: 'Cancelled', statuses: ['Cancelled'],
-    badge: 'bg-stone-100 text-stone-500', bar: 'border-l-stone-300', dot: 'bg-stone-400' },
+    badge: 'bg-stone-100 text-stone-400', bar: 'border-l-stone-200', dot: 'bg-stone-300' },
 ];
 
 const stageOf = (status) => STAGES.find((s) => s.statuses.includes(status)) || STAGES[0];
@@ -39,8 +41,8 @@ const STATUS_LABELS = {
   Pending: 'In line',
   Diagnosis: 'Checking the problem',
   'In Progress': 'Being repaired',
-  'Ready for Pickup': 'Done – ready for pickup',
-  Released: 'Released to customer',
+  'Ready for Pickup': 'Waiting for pickup',
+  Released: 'Picked up',
   Cancelled: 'Cancelled',
 };
 
@@ -54,9 +56,6 @@ const NEXT_STEP = {
 
 const inputClass =
   'w-full px-3 py-2 border border-stone-300 rounded-md text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500';
-
-// Still in the shop: not yet released to the customer or cancelled
-const isActive = (r) => !['Released', 'Completed', 'Cancelled'].includes(r.status);
 
 const jobNumber = (id) => `#${String(id).padStart(4, '0')}`;
 
@@ -353,6 +352,25 @@ function InlineCost({ value, onSave }) {
 }
 
 // ---------------------------------------------------------------------------
+// Paid / Unpaid — click to switch
+// ---------------------------------------------------------------------------
+function PaidToggle({ paid, onChange }) {
+  return (
+    <button
+      onClick={() => onChange(!paid)}
+      title={paid ? 'Paid — click to mark as unpaid' : 'Not paid yet — click to mark as paid'}
+      className={`px-2 py-0.5 rounded text-[11px] font-bold uppercase tracking-wide whitespace-nowrap border transition-colors ${
+        paid
+          ? 'bg-terrace-600 text-white border-terrace-600 hover:bg-terrace-700'
+          : 'bg-white text-brand-700 border-brand-300 hover:bg-brand-50'
+      }`}
+    >
+      {paid ? '✓ Paid' : 'Unpaid'}
+    </button>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Status: one-click next step plus a menu for anything else
 // ---------------------------------------------------------------------------
 const repairStatusFlow = ['Pending', 'Diagnosis', 'In Progress', 'Ready for Pickup', 'Released'];
@@ -398,7 +416,7 @@ export default function Repairs() {
   const [repairs, setRepairs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [stageFilter, setStageFilter] = useState('active');
+  const [stageFilter, setStageFilter] = useState('all');
   const [search, setSearch] = useState('');
 
   const fetchData = useCallback(async () => {
@@ -445,11 +463,10 @@ export default function Repairs() {
     counts[key] = (counts[key] || 0) + 1;
     return counts;
   }, {});
-  const activeCount = searched.filter(isActive).length;
+  const waitingCount = repairs.filter((r) => r.status === 'Ready for Pickup').length;
 
   const visible = searched.filter((r) => {
     if (stageFilter === 'all') return true;
-    if (stageFilter === 'active') return isActive(r);
     return stageOf(r.status).key === stageFilter;
   });
 
@@ -463,7 +480,7 @@ export default function Repairs() {
       <div className="mb-5 flex-shrink-0">
         <h1 className="text-2xl text-stone-800">Repairs</h1>
         <p className="text-sm text-stone-500 mt-0.5">
-          {loading ? 'Loading...' : `${activeCount} in the shop · ${repairs.length} total`}
+          {loading ? 'Loading...' : `${waitingCount} waiting for pickup · ${repairs.length} total`}
         </p>
       </div>
 
@@ -491,8 +508,8 @@ export default function Repairs() {
               placeholder="Search name, phone, model or job #"
               className="w-full sm:w-64 px-3 py-2 border border-stone-300 rounded-md text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500"
             />
-            <button onClick={() => setStageFilter('active')} className={chipClass(stageFilter === 'active')}>
-              In the shop <span className="opacity-60">{activeCount}</span>
+            <button onClick={() => setStageFilter('all')} className={chipClass(stageFilter === 'all')}>
+              All <span className="opacity-60">{searched.length}</span>
             </button>
             {STAGES.map((stage) => (
               <button key={stage.key} onClick={() => setStageFilter(stage.key)} className={chipClass(stageFilter === stage.key)}>
@@ -500,9 +517,6 @@ export default function Repairs() {
                 {stage.label} <span className="opacity-60">{stageCounts[stage.key] || 0}</span>
               </button>
             ))}
-            <button onClick={() => setStageFilter('all')} className={chipClass(stageFilter === 'all')}>
-              All <span className="opacity-60">{searched.length}</span>
-            </button>
           </div>
 
           {/* Table */}
@@ -549,11 +563,17 @@ export default function Repairs() {
                       </td>
                       <td className="px-3 py-3">
                         <RepairStatusBadge status={repair.status} />
-                        <div className="mt-1">
+                        <div className="mt-1 flex items-center gap-2">
                           <InlineCost
                             value={repair.estimated_cost || 0}
                             onSave={(cost) => updateRepair(repair.id, { estimated_cost: cost }, 'Failed to update cost.')}
                           />
+                          {repair.status !== 'Cancelled' && (
+                            <PaidToggle
+                              paid={repair.is_paid}
+                              onChange={(isPaid) => updateRepair(repair.id, { is_paid: isPaid }, 'Failed to update payment.')}
+                            />
+                          )}
                         </div>
                       </td>
                       <td className="px-3 py-3 text-right">

@@ -161,6 +161,7 @@ async def create_repair(
         repair_type=(body.repair_type or "").strip() or None,
         issue_description=body.issue_description.strip(),
         estimated_cost=body.estimated_cost,
+        is_paid=body.is_paid,
         status="Pending",
         notes=body.notes,
         created_at=now,
@@ -179,7 +180,7 @@ async def update_repair(
     admin: dict = Depends(get_current_admin),
     db: AsyncSession = Depends(get_db),
 ):
-    """Update a repair request's status, estimated_cost, and/or notes.
+    """Update a repair request's status, estimated_cost, is_paid, and/or notes.
 
     ``status`` is validated against the allowed set: Pending, Diagnosis,
     In Progress, Ready for Pickup, Released, Cancelled.
@@ -205,6 +206,8 @@ async def update_repair(
         repair.estimated_cost = body.estimated_cost
     if body.notes is not None:
         repair.notes = body.notes
+    if body.is_paid is not None:
+        repair.is_paid = body.is_paid
     if body.repair_type is not None:
         repair.repair_type = body.repair_type.strip() or None
 

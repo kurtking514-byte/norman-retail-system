@@ -1,6 +1,6 @@
 import datetime
 
-from sqlalchemy import Column, DateTime, DECIMAL, ForeignKey, Integer, String, Text
+from sqlalchemy import Boolean, Column, DateTime, DECIMAL, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import relationship
 
 from app.models.base import Base
@@ -17,6 +17,8 @@ class RepairRequest(Base):
     repair_type = Column(String(100), nullable=True)
     issue_description = Column(Text, nullable=False)
     estimated_cost = Column(DECIMAL(10, 2), default=0.0)
+    # Whether the customer has paid for the repair
+    is_paid = Column(Boolean, nullable=False, default=False, server_default="false")
     # Status allowed values: Pending, Diagnosis, In Progress, Ready for Pickup, Released, Cancelled
     status = Column(String(50), default="Pending", index=True)
     notes = Column(Text)

@@ -25,6 +25,7 @@ class RepairRequestCreate(BaseModel):
     repair_type: Optional[str] = None
     issue_description: str = ""
     estimated_cost: float = 0.0
+    is_paid: bool = False
     notes: Optional[str] = None
 
     @model_validator(mode="after")
@@ -59,6 +60,7 @@ class RepairRequestUpdate(BaseModel):
     status: Optional[str] = None
     repair_type: Optional[str] = None
     estimated_cost: Optional[float] = None
+    is_paid: Optional[bool] = None
     notes: Optional[str] = None
 
     VALID_STATUSES: ClassVar[set[str]] = {
@@ -88,6 +90,7 @@ class RepairRequestResponse(BaseModel):
     repair_type: Optional[str] = None
     issue_description: str
     estimated_cost: float
+    is_paid: bool = False
     status: str
     notes: Optional[str] = None
     created_at: Optional[datetime] = None
