@@ -37,7 +37,7 @@ async def login(body: LoginRequest, request: Request):
         )
 
     if (
-        body.username != settings.ADMIN_USERNAME
+        body.username.strip() != settings.ADMIN_USERNAME
         or not verify_password(body.password, settings.ADMIN_PASSWORD_HASH)
     ):
         login_limiter.record_failure(ip, body.username)

@@ -121,3 +121,21 @@ async def test_expired_token_rejected(client):
 def test_malformed_password_hash_fails_closed():
     assert verify_password("anything", "") is False
     assert verify_password("anything", "not-a-bcrypt-hash") is False
+
+
+def test_pasted_credentials_are_trimmed():
+    from app.core.config import Settings
+
+    pasted = Settings(
+        ADMIN_USERNAME="  kingbyte \n",
+        ADMIN_PASSWORD_HASH=' "$2b$12$abc" \n',
+        JWT_SECRET_KEY="'secret'",
+    )
+    assert pasted.ADMIN_USERNAME == "kingbyte"
+    assert pasted.ADMIN_PASSWORD_HASH == "$2b$12$abc"
+    assert pasted.JWT_SECRET_KEY == "secret"
+
+
+async def test_username_with_trailing_space_logs_in(client):
+    resp = await client.post(LOGIN_URL, json={"username": "admin ", "password": "changeme123"})
+    assert resp.status_code == 200

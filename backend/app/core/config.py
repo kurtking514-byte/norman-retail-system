@@ -1,5 +1,6 @@
 from pathlib import Path
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 ENV_FILE_PATH = Path(__file__).resolve().parent.parent.parent / ".env"
@@ -36,6 +37,15 @@ class Settings(BaseSettings):
 
     # Comma-separated extra CORS origins, e.g. the deployed admin dashboard URL
     FRONTEND_ORIGINS: str = ""
+
+    @field_validator("ADMIN_USERNAME", "ADMIN_PASSWORD_HASH", "JWT_SECRET_KEY", mode="before")
+    @classmethod
+    def _strip_pasted_value(cls, value):
+        # Values pasted into Render's dashboard can pick up stray spaces,
+        # line breaks or surrounding quotes, which would make login fail.
+        if isinstance(value, str):
+            return value.strip().strip("'\"").strip()
+        return value
 
 
 settings = Settings()
