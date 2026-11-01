@@ -242,6 +242,12 @@ async def process_incoming_message(
         logger.info("DEBUG process_incoming_message — RETURNING early because STAFF_HANDOFF_ENABLED is False")
         return
 
+    # Global AI switch flipped from the admin dashboard
+    from app.services.ai_settings_service import get_ai_replies_enabled
+    if not await get_ai_replies_enabled(db):
+        logger.info("process_incoming_message — AI replies switched off in dashboard, skipping AI reply")
+        return
+
     logger.info("DEBUG process_incoming_message — STAFF_HANDOFF_ENABLED is True, proceeding to AI reply phase")
 
     # Lazy imports to avoid circular dependencies at module level

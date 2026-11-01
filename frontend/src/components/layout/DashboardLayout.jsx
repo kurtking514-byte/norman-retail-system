@@ -1,5 +1,6 @@
 import { useAuth } from '../../context/AuthContext';
 import Sidebar from './Sidebar';
+import AiSwitch from '../common/AiSwitch';
 import { useNavigate } from 'react-router-dom';
 
 export default function DashboardLayout({ children }) {
@@ -23,12 +24,15 @@ export default function DashboardLayout({ children }) {
               {user?.username || 'Admin'}
             </span>
           </div>
-          <button
-            onClick={handleLogout}
-            className="px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-          >
-            Logout
-          </button>
+          <div className="flex items-center gap-4">
+            <AiSwitch />
+            <button
+              onClick={handleLogout}
+              className="px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+            >
+              Logout
+            </button>
+          </div>
         </header>
 
         {/* Page content */}
