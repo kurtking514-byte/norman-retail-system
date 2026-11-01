@@ -285,9 +285,9 @@ export default function LiveChat() {
 
       // EventSource doesn't support custom headers, so pass token as query param.
       // FastAPI's OAuth2 password bearer also reads from query param.
-      const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1';
       eventSource = new EventSource(
-        `${baseUrl}/api/v1/conversations/stream?token=${encodeURIComponent(token)}`
+        `${baseUrl}/conversations/stream?token=${encodeURIComponent(token)}`
       );
       sseRef.current = eventSource;
 

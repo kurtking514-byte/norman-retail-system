@@ -32,5 +32,8 @@ class Settings(BaseSettings):
     # Phase 5 — AI auto-reply toggle
     STAFF_HANDOFF_ENABLED: bool = True
 
+    # Comma-separated extra CORS origins, e.g. the deployed admin dashboard URL
+    FRONTEND_ORIGINS: str = ""
+
 
 settings = Settings()

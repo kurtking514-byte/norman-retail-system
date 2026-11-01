@@ -6,6 +6,7 @@ from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.api.v1.router import router as api_v1_router
+from app.core.config import settings
 from app.core.database import init_db
 from app.core.logging_config import get_logger, setup_logging
 
@@ -24,13 +25,19 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="Norman Cellphone Center And Repair Shop", lifespan=lifespan)
 
 # ---------------------------------------------------------------------------
-# CORS — allow the Vite dev server origins
+# CORS — allow the Vite dev server origins plus any deployed dashboard
+# origins listed in FRONTEND_ORIGINS
 # ---------------------------------------------------------------------------
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5173",
         "http://127.0.0.1:5173",
+        *[
+            origin.strip().rstrip("/")
+            for origin in settings.FRONTEND_ORIGINS.split(",")
+            if origin.strip()
+        ],
     ],
     allow_credentials=True,
     allow_methods=["*"],
