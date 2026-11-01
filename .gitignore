@@ -37,3 +37,6 @@ login.json
 *.txt
 !requirements.txt
 .aider*
+
+# Files set aside for moving out of the project
+unwanted/
