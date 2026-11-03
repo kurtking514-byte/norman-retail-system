@@ -38,6 +38,9 @@ class Settings(BaseSettings):
     # Comma-separated extra CORS origins, e.g. the deployed admin dashboard URL
     FRONTEND_ORIGINS: str = ""
 
+    # Where the backend's home page sends visitors (the admin dashboard)
+    DASHBOARD_URL: str = "https://norman-retail-system-dashboard.onrender.com"
+
     @field_validator("ADMIN_USERNAME", "ADMIN_PASSWORD_HASH", "JWT_SECRET_KEY", mode="before")
     @classmethod
     def _strip_pasted_value(cls, value):

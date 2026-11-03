@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.api.v1.router import router as api_v1_router
@@ -83,6 +83,12 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException):
 
 
 app.include_router(api_v1_router)
+
+
+@app.get("/", include_in_schema=False)
+async def home():
+    """Send people who open the backend's address to the admin dashboard."""
+    return RedirectResponse(settings.DASHBOARD_URL)
 
 
 @app.get("/health")
